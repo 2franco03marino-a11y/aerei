@@ -2,264 +2,335 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<title>FlyRadar + MarineRadar</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
+<title>FlyRadar</title>
+<!-- ✅ PWA iOS fullscreen: queste 3 righe fanno sparire Safari UI quando aggiunta alla home -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FlyRadar">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#09090f">
+
+<!-- Web App Manifest per Android PWA -->
+<link rel="manifest" href="data:application/json,{
+  &quot;name&quot;:&quot;FlyRadar&quot;,
+  &quot;short_name&quot;:&quot;FlyRadar&quot;,
+  &quot;display&quot;:&quot;standalone&quot;,
+  &quot;background_color&quot;:&quot;#09090f&quot;,
+  &quot;theme_color&quot;:&quot;#09090f&quot;,
+  &quot;start_url&quot;:&quot;.&quot;,
+  &quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈</text></svg>&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]
+}">
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@2.1.0/dist/leaflet-velocity.css"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:#09090f;color:#eee;font-family:system-ui,-apple-system,sans-serif;touch-action:manipulation}
 
-/* ── TOP BAR ── */
-#topbar{
-  position:fixed;top:0;left:0;right:0;
-  height:env(safe-area-inset-top, 0px);
-  background:#09090f;z-index:4000;
+<style>
+/* ══ RESET ══ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;height:-webkit-fill-available}
+body{
+  width:100vw;height:100vh;height:-webkit-fill-available;
+  overflow:hidden;background:#09090f;color:#eee;
+  font-family:-apple-system,system-ui,sans-serif;
+  /* Risolve il "bounce" scroll iOS che causa problemi con Leaflet */
+  overscroll-behavior:none;
+  -webkit-overflow-scrolling:touch;
 }
+
+/* ══ VARIABILI SAFE AREA ══ */
+:root{
+  --sat: env(safe-area-inset-top,    0px);
+  --sar: env(safe-area-inset-right,  0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left,   0px);
+  --header-h: 52px;
+  --nav-h:    56px;
+}
+
+/* ══ HEADER ══ */
 #header{
   position:fixed;
-  top:env(safe-area-inset-top,0px);
-  left:0;right:0;height:52px;
-  background:rgba(12,12,24,.97);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-bottom:1px solid #181830;
-  display:flex;align-items:center;
-  padding:0 12px;gap:8px;
+  top:0; left:0; right:0;
+  /* padding-top gestisce il notch/Dynamic Island */
+  padding-top: var(--sat);
+  background:rgba(10,10,20,.97);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,.06);
   z-index:3000;
+  display:flex;align-items:flex-end;
+  padding-left:14px;padding-right:14px;padding-bottom:10px;
+  min-height:calc(var(--sat) + var(--header-h));
 }
-.title{font-size:13px;font-weight:800;white-space:nowrap;letter-spacing:.02em;flex-shrink:0}
+.title{font-size:14px;font-weight:800;letter-spacing:.02em;flex:1}
 #status{
-  font-size:10px;color:#444;flex:1;text-align:center;
+  font-size:10px;color:#3a3a50;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:50vw;text-align:right;
 }
-#btns{display:flex;gap:4px;flex-shrink:0}
-.btn{
-  font-size:11px;font-weight:700;
-  padding:5px 10px;border-radius:99px;
-  border:1px solid #1e1e30;background:#111;color:#555;
-  cursor:pointer;transition:all .2s;white-space:nowrap;
-  outline:none;min-height:32px;
-  -webkit-touch-callout:none;user-select:none;
-}
-.btn.air-on {background:#ffd500;color:#000;border-color:#ffd500}
-.btn.sea-on {background:#00b4d8;color:#000;border-color:#00b4d8}
-.btn.wind-on{background:#a855f7;color:#fff;border-color:#a855f7}
 
-/* ── MAPPA ── */
+/* ══ MAPPA ══ */
 #map{
   position:fixed;
-  top:calc(env(safe-area-inset-top,0px) + 52px);
+  top: calc(var(--sat) + var(--header-h));
   left:0;right:0;
-  bottom:calc(env(safe-area-inset-bottom,0px) + 56px);
+  bottom: calc(var(--sab) + var(--nav-h));
   z-index:1;
 }
 
-/* ── BOTTOM NAV (mobile) ── */
+/* ══ BOTTOM NAV ══ */
 #bottom-nav{
   position:fixed;
-  bottom:env(safe-area-inset-bottom,0px);
-  left:0;right:0;height:56px;
-  background:rgba(12,12,24,.97);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-top:1px solid #181830;
-  display:flex;align-items:center;justify-content:space-around;
-  padding:0 8px;z-index:3000;gap:4px;
+  bottom:0; left:0; right:0;
+  /* padding-bottom gestisce la home bar iPhone */
+  padding-bottom: var(--sab);
+  background:rgba(10,10,20,.97);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid rgba(255,255,255,.06);
+  z-index:3000;
+  display:flex;align-items:flex-start;justify-content:space-around;
+  padding-top:6px;
+  min-height:calc(var(--sab) + var(--nav-h));
 }
-.nav-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;padding:4px 2px;border-radius:10px;cursor:pointer;
-  min-height:48px;transition:background .15s;
-  user-select:none;-webkit-tap-highlight-color:transparent;
+.nb{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:4px 2px;cursor:pointer;border-radius:10px;
+  user-select:none;transition:opacity .15s;
+  /* touch target minimo Apple 44pt */
+  min-height:44px;
 }
-.nav-btn:active{background:rgba(255,255,255,.05)}
-.nav-ico{font-size:20px;line-height:1}
-.nav-lbl{font-size:9px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.05em}
-.nav-btn.air-on .nav-lbl{color:#ffd500}
-.nav-btn.sea-on .nav-lbl{color:#00b4d8}
-.nav-btn.wind-on .nav-lbl{color:#a855f7}
-.nav-btn.list-on .nav-lbl{color:#eee}
+.nb:active{opacity:.6}
+.nb-ico{font-size:22px;line-height:1;transition:transform .2s}
+.nb:active .nb-ico{transform:scale(.9)}
+.nb-lbl{font-size:9px;font-weight:600;color:#40405a;text-transform:uppercase;letter-spacing:.06em;transition:color .2s}
+.nb.air-on .nb-lbl,.nb.air-on .nb-ico{color:#ffd500}
+.nb.sea-on .nb-lbl,.nb.sea-on .nb-ico{color:#00b4d8}
+.nb.wind-on .nb-lbl,.nb.wind-on .nb-ico{color:#a855f7}
+.nb.list-on .nb-lbl{color:#eee}
 
-/* ── SHEET (lista, filtri) — slide dal basso ── */
+/* ══ BOTTOM SHEET (lista) ══ */
 #sheet{
-  position:fixed;left:0;right:0;
-  bottom:calc(env(safe-area-inset-bottom,0px) + 56px);
-  height:50vh;
-  background:rgba(10,10,20,.99);
-  border-top:1px solid #181830;
-  border-radius:16px 16px 0 0;
-  z-index:2500;
+  position:fixed;
+  left:0;right:0;
+  bottom: calc(var(--sab) + var(--nav-h));
+  height:55vh;
+  background:rgba(9,9,18,.98);
+  border-top:1px solid rgba(255,255,255,.07);
+  border-radius:20px 20px 0 0;
+  z-index:2000;
   transform:translateY(100%);
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
   display:flex;flex-direction:column;
   overflow:hidden;
   will-change:transform;
+  /* iOS Safari fix: forza compositing layer */
+  -webkit-transform:translateY(100%);
 }
-#sheet.open{transform:translateY(0)}
-#sheet-handle{
-  width:36px;height:4px;background:#2a2a3a;
-  border-radius:2px;margin:10px auto 6px;flex-shrink:0;
+#sheet.open{
+  transform:translateY(0);
+  -webkit-transform:translateY(0);
 }
-#sheet-head{
+.sh-handle{width:38px;height:4px;background:#252535;border-radius:2px;margin:12px auto 8px;flex-shrink:0}
+#sh-head{
   display:flex;justify-content:space-between;align-items:center;
-  padding:0 14px 8px;flex-shrink:0;border-bottom:1px solid #141425;
+  padding:0 16px 10px;flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,.05);
 }
-#sb-title{font-size:13px;font-weight:700}
-#sb-count{
-  font-size:11px;font-weight:700;padding:2px 9px;
-  border-radius:99px;background:#ffd500;color:#000;
-}
+#sb-title{font-size:14px;font-weight:700}
+#sb-count{font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:#ffd500;color:#000}
+
 #filters{
-  padding:8px 12px;border-bottom:1px solid #141425;
-  flex-shrink:0;overflow-x:auto;
-  scrollbar-width:none;
+  padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
 }
 #filters::-webkit-scrollbar{display:none}
-.fg{display:flex;gap:6px;white-space:nowrap}
+.fg{display:flex;gap:7px;white-space:nowrap}
 .fb{
-  font-size:11px;font-weight:600;padding:5px 12px;border-radius:99px;
-  border:1px solid #181830;background:#0d0d1c;color:#505060;
-  cursor:pointer;flex-shrink:0;min-height:32px;
-  user-select:none;transition:all .15s;
+  font-size:11px;font-weight:600;padding:6px 13px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.07);background:#0e0e1c;color:#454560;
+  cursor:pointer;flex-shrink:0;min-height:34px;min-width:44px;
+  user-select:none;transition:all .15s;-webkit-touch-callout:none;
 }
 .fb.on    {background:#ffd500;color:#000;border-color:#ffd500}
 .fb.on-mil{background:#4caf50;color:#000;border-color:#4caf50}
 .fb.on-gnd{background:#ff5555;color:#fff;border-color:#ff5555}
 .fb.on-sea{background:#00b4d8;color:#000;border-color:#00b4d8}
-#sb-list{overflow-y:auto;flex:1;padding:4px 12px;-webkit-overflow-scrolling:touch}
+
+#sb-list{overflow-y:auto;flex:1;padding:4px 14px;-webkit-overflow-scrolling:touch}
 .fr{
-  padding:10px 4px;border-bottom:1px solid #0f0f1a;
-  cursor:pointer;border-radius:6px;
-  display:flex;align-items:center;gap:8px;
+  padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.04);
+  cursor:pointer;display:flex;align-items:center;gap:10px;
+  border-radius:8px;
 }
 .fr:active{background:rgba(255,255,255,.04)}
 .fr:last-child{border-bottom:none}
-.fr-ico{font-size:18px;flex-shrink:0}
+.fr-ico{font-size:20px;flex-shrink:0;width:28px;text-align:center}
 .fr-info{flex:1;min-width:0}
-.fn{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fn-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.fn-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.fn{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .fs{font-size:11px;color:#383850}
-.b{font-size:9px;padding:1px 6px;border-radius:99px;font-weight:700;text-transform:uppercase;flex-shrink:0}
+.b{font-size:9px;padding:2px 6px;border-radius:99px;font-weight:700;text-transform:uppercase;flex-shrink:0}
 .b-f{background:rgba(0,200,80,.1);color:#00c864}
 .b-g{background:rgba(255,80,80,.1);color:#ff5050}
 .b-m{background:rgba(76,175,80,.12);color:#4caf50}
 .b-s{background:rgba(0,180,216,.12);color:#00b4d8}
-.empty{font-size:12px;color:#2a2a3a;padding:16px 4px;text-align:center}
+.empty{font-size:12px;color:#252535;padding:20px 0;text-align:center;line-height:1.8}
 
-/* ── DETAIL PANEL — slide dal basso full ── */
+/* ══ DETAIL PANEL — SLIDE DAL BASSO ══ */
 #detail{
-  position:fixed;left:0;right:0;
-  bottom:calc(env(safe-area-inset-bottom,0px) + 56px);
-  height:70vh;
-  background:rgba(9,9,20,.99);
-  border-top:1px solid #181830;
-  border-radius:20px 20px 0 0;
+  position:fixed;
+  left:0;right:0;
+  bottom: calc(var(--sab) + var(--nav-h));
+  height:72vh;
+  background:rgba(9,9,18,.99);
+  border-top:1px solid rgba(255,255,255,.07);
+  border-radius:22px 22px 0 0;
   z-index:3500;
-  transform:translateY(100%);
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  transform:translateY(110%);
+  -webkit-transform:translateY(110%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
   display:flex;flex-direction:column;
   overflow:hidden;
+  will-change:transform;
+  /* FIX BUG iOS: pointer-events off quando chiuso */
+  pointer-events:none;
 }
-#detail.show{transform:translateY(0)}
-#det-drag{
-  width:36px;height:4px;background:#2a2a3a;
-  border-radius:2px;margin:10px auto 0;flex-shrink:0;
+#detail.show{
+  transform:translateY(0);
+  -webkit-transform:translateY(0);
+  pointer-events:auto;
 }
-#det-x{
-  position:absolute;top:10px;right:12px;
-  cursor:pointer;font-size:14px;color:#555;z-index:5;
-  background:rgba(0,0,0,.7);border-radius:50%;
-  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+.det-handle{width:38px;height:4px;background:#252535;border-radius:2px;margin:12px auto 0;flex-shrink:0}
+#det-close-btn{
+  position:absolute;top:10px;right:14px;
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:10;
+  font-size:14px;color:#888;
+  border:none;outline:none;
+  /* FIX: garantiamo che sia sempre cliccabile */
+  pointer-events:auto;
 }
+#det-close-btn:active{background:rgba(255,255,255,.15)}
+
 #det-scroll{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
 #det-img{
-  width:100%;height:180px;background:#060612;
+  width:100%;height:190px;background:#060612;
   position:relative;overflow:hidden;flex-shrink:0;
 }
 #det-img img{width:100%;height:100%;object-fit:cover;display:block}
-.ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#2a2a3a;gap:6px}
-.ph .ico{font-size:44px}.ph span{font-size:12px}
-#det-body{padding:14px 16px 20px}
-#det-cs{font-size:20px;font-weight:800;margin-bottom:3px}
+.ph{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#252535;gap:8px;
+}
+.ph .ico{font-size:48px}
+.ph span{font-size:12px;color:#383850}
+#det-body{padding:16px 18px 24px}
+#det-cs{font-size:22px;font-weight:800;margin-bottom:3px;letter-spacing:-.01em}
 #det-id{font-size:11px;color:#383850;margin-bottom:10px}
-#det-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-.tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;text-transform:uppercase}
+#det-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tag{font-size:11px;font-weight:700;padding:3px 11px;border-radius:99px;text-transform:uppercase}
 .t-fly{background:rgba(0,200,80,.1);color:#00c864}
 .t-gnd{background:rgba(255,80,80,.1);color:#ff5050}
 .t-mil{background:rgba(76,175,80,.15);color:#4caf50}
 .t-civ{background:rgba(100,160,255,.1);color:#64a0ff}
 .t-sea{background:rgba(0,180,216,.12);color:#00b4d8}
 #det-desc{
-  font-size:12px;color:#505060;line-height:1.7;
+  font-size:12px;color:#454560;line-height:1.7;
   margin-bottom:14px;font-style:italic;
-  border-left:3px solid #181830;padding-left:10px;display:none;
+  border-left:3px solid #181830;padding-left:10px;
 }
 .det-row{
   display:flex;align-items:center;
-  padding:10px 0;border-bottom:1px solid #0f0f1a;
+  padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);
 }
-.det-row:last-child{border-bottom:none}
-.det-lbl{font-size:11px;color:#383850;width:80px;flex-shrink:0}
-.det-val{font-size:13px;color:#ddd;font-weight:600;flex:1}
-#det-credit{font-size:10px;color:#202030;margin-top:16px;text-align:right}
+.det-row:last-of-type{border-bottom:none}
+.det-lbl{font-size:11px;color:#383850;width:80px;flex-shrink:0;font-weight:500}
+.det-val{font-size:14px;color:#ddd;font-weight:600;flex:1}
+#det-credit{font-size:10px;color:#1e1e2e;margin-top:18px;text-align:right}
 
-/* CLUSTER */
-.marker-cluster-small  {background:rgba(255,213,0,.25)}
+/* ══ CLUSTER ══ */
+.marker-cluster-small  {background:rgba(255,213,0,.2)}
 .marker-cluster-small div  {background:rgba(255,213,0,.9);color:#000;font-weight:700}
-.marker-cluster-medium {background:rgba(255,170,0,.25)}
+.marker-cluster-medium {background:rgba(255,170,0,.2)}
 .marker-cluster-medium div {background:rgba(255,170,0,.9);color:#000;font-weight:700}
-.marker-cluster-large  {background:rgba(255,100,0,.25)}
+.marker-cluster-large  {background:rgba(255,100,0,.2)}
 .marker-cluster-large div  {background:rgba(255,100,0,.9);color:#000;font-weight:700}
 
-.leaflet-popup-content-wrapper{display:none!important}
-.leaflet-control-zoom{margin-bottom:8px!important;margin-right:8px!important}
-.leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important;font-size:18px!important;background:rgba(12,12,24,.95)!important;color:#eee!important;border-color:#181830!important}
-.leaflet-control-velocity{background:rgba(9,9,20,.85)!important;color:#a855f7!important;border:1px solid #a855f720!important;border-radius:8px!important;padding:4px 10px!important;font-size:10px!important;font-weight:600!important}
+/* ══ LEAFLET OVERRIDES ══ */
+/* Disabilita popup nativi Leaflet (usiamo il panel) */
+.leaflet-popup{display:none!important}
+/* Fix iOS Safari: controlli zoom dietro la status bar */
+.leaflet-control-container .leaflet-top,
+.leaflet-control-container .leaflet-bottom{will-change:transform}
+.leaflet-control-zoom{margin-right:10px!important;margin-bottom:10px!important}
+.leaflet-control-zoom a{
+  width:40px!important;height:40px!important;line-height:40px!important;
+  font-size:20px!important;
+  background:rgba(10,10,20,.92)!important;
+  color:#eee!important;border-color:rgba(255,255,255,.08)!important;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.leaflet-control-velocity{
+  background:rgba(9,9,20,.88)!important;
+  color:#a855f7!important;
+  border:1px solid rgba(168,85,247,.2)!important;
+  border-radius:10px!important;
+  padding:5px 12px!important;
+  font-size:10px!important;font-weight:600!important;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+/* ══ OVERLAY scuro quando detail è aperto ══ */
+#overlay{
+  position:fixed;inset:0;z-index:3400;
+  background:rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+}
+#overlay.show{opacity:1;pointer-events:auto}
 </style>
 </head>
 <body>
 
-<!-- Safe area top -->
-<div id="topbar"></div>
-
 <div id="header">
   <span class="title">✈ FlyRadar</span>
   <span id="status">Avvio…</span>
-  <!-- Su mobile i bottoni principali sono nella bottom nav -->
-  <!-- Qui solo stato/titolo -->
 </div>
 
 <div id="map"></div>
 
+<!-- OVERLAY scuro sotto il detail -->
+<div id="overlay" onclick="closeDetail()"></div>
+
 <!-- BOTTOM NAV -->
 <div id="bottom-nav">
-  <div class="nav-btn air-on" id="nav-air" onclick="setMode('air')">
-    <span class="nav-ico">✈</span>
-    <span class="nav-lbl">Aerei</span>
+  <div class="nb air-on" id="nav-air" onclick="setMode('air')">
+    <span class="nb-ico">✈</span>
+    <span class="nb-lbl">Aerei</span>
   </div>
-  <div class="nav-btn" id="nav-sea" onclick="setMode('sea')">
-    <span class="nav-ico">⛵</span>
-    <span class="nav-lbl">Navi</span>
+  <div class="nb" id="nav-sea" onclick="setMode('sea')">
+    <span class="nb-ico">⛵</span>
+    <span class="nb-lbl">Navi</span>
   </div>
-  <div class="nav-btn" id="nav-wind" onclick="toggleWind()">
-    <span class="nav-ico">💨</span>
-    <span class="nav-lbl">Vento</span>
+  <div class="nb" id="nav-wind" onclick="toggleWind()">
+    <span class="nb-ico">💨</span>
+    <span class="nb-lbl">Vento</span>
   </div>
-  <div class="nav-btn" id="nav-list" onclick="toggleSheet()">
-    <span class="nav-ico">☰</span>
-    <span class="nav-lbl">Lista</span>
+  <div class="nb" id="nav-list" onclick="toggleSheet()">
+    <span class="nb-ico">☰</span>
+    <span class="nb-lbl">Lista</span>
   </div>
 </div>
 
-<!-- BOTTOM SHEET (lista voli/navi) -->
+<!-- BOTTOM SHEET -->
 <div id="sheet">
-  <div id="sheet-handle"></div>
-  <div id="sheet-head">
+  <div class="sh-handle" id="sh-handle"></div>
+  <div id="sh-head">
     <span id="sb-title">Voli area locale</span>
     <span id="sb-count">0</span>
   </div>
@@ -267,23 +338,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;color:#eee;f
   <div id="sb-list"><div class="empty">Caricamento…</div></div>
 </div>
 
-<!-- DETAIL PANEL (slide dal basso) -->
+<!-- DETAIL PANEL -->
 <div id="detail">
-  <div id="det-drag"></div>
-  <div id="det-x" onclick="closeDetail()">✕</div>
+  <div class="det-handle" id="det-handle"></div>
+  <button id="det-close-btn" onclick="closeDetail()">✕</button>
   <div id="det-scroll">
-    <div id="det-img"><div class="ph"><span class="ico">✈</span><span>Caricamento…</span></div></div>
+    <div id="det-img">
+      <div class="ph"><span class="ico">✈</span><span>Caricamento…</span></div>
+    </div>
     <div id="det-body">
       <div id="det-cs">—</div>
       <div id="det-id">—</div>
       <div id="det-tags"></div>
       <div id="det-desc"></div>
-      <div class="det-row"><span class="det-lbl">Paese</span><span class="det-val" id="d-c">—</span></div>
+      <div class="det-row"><span class="det-lbl">Paese</span>   <span class="det-val" id="d-c">—</span></div>
       <div class="det-row" id="row-alt"><span class="det-lbl">Quota</span><span class="det-val" id="d-a">—</span></div>
       <div class="det-row"><span class="det-lbl">Velocità</span><span class="det-val" id="d-s">—</span></div>
-      <div class="det-row"><span class="det-lbl">Prua</span><span class="det-val" id="d-h">—</span></div>
+      <div class="det-row"><span class="det-lbl">Prua</span>     <span class="det-val" id="d-h">—</span></div>
       <div class="det-row"><span class="det-lbl">Posizione</span><span class="det-val" id="d-p">—</span></div>
-      <div class="det-row"><span class="det-lbl">Stato</span><span class="det-val" id="d-g">—</span></div>
+      <div class="det-row"><span class="det-lbl">Stato</span>    <span class="det-val" id="d-g">—</span></div>
       <div id="det-credit">Foto: Planespotters.net · Dati: OpenSky / AIS</div>
     </div>
   </div>
@@ -300,21 +373,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:#09090f;color:#eee;f
 const OPENSKY  = "https://opensky-network.org/api/states/all";
 const AIR_BBOX = {lamin:43.5,lamax:48.5,lomin:5.0, lomax:13.5};
 const SEA_BBOX = {lamin:36.0,lamax:48.0,lomin:4.0, lomax:20.0};
-const AISSTREAM_KEY = ""; // opzionale, gratis su aisstream.io con GitHub
+const AISSTREAM_KEY = ""; // opzionale: metti qui la tua key gratis da aisstream.io
 
 // ══════════════════════════════════════════════════════════
-// STATO
+// STATO GLOBALE
 // ══════════════════════════════════════════════════════════
 let map, cluster, trailLayer, windLayer;
 let lastAir=[], lastSea=[];
 let mode="air", windOn=false, sheetOpen=false;
 let airTimer=null, seaTimer=null;
+let detailVisible=false;
 
 const MIL_PREFIXES  = ["ae","a1","a2","a3","a4","a5","43c","43d","43e","43f","3b7","3b8","3b9","3ba","3bb","43b","43a","4240","4241","4242","4243","4244","4245","300","301","302","500","501"];
 const MIL_CALLSIGNS = ["RCH","DUKE","REACH","JAKE","FURY","VIPER","GHOST","EAGLE","VENUS","MARS","ATLAS","MAGMA","TOPGUN","KNIFE","IRON","STEEL","AMI","IAM","GAF","RAF","USAF","NAVY"];
 const AIRLINE_DESC  = {
   "RYR":"Ryanair — low-cost irlandese, tra le più grandi d'Europa.",
-  "EZY":"easyJet — low-cost britannica, molto attiva in Italia.",
+  "EZY":"easyJet — low-cost britannica.",
   "AZA":"ITA Airways — compagnia di bandiera italiana.",
   "BAW":"British Airways — compagnia di bandiera UK.",
   "DLH":"Lufthansa — compagnia di bandiera tedesca.",
@@ -326,9 +400,8 @@ const AIRLINE_DESC  = {
   "VLG":"Vueling — low-cost spagnola gruppo IAG.",
   "AMI":"Aeronautica Militare Italiana.",
   "RCH":"US Air Force — volo militare americano.",
-  "GAF":"German Air Force — militare tedesco.",
-  "RAF":"Royal Air Force — militare britannico.",
 };
+
 const airF={civil:true,mil:true,fly:true,gnd:false,heavy:false};
 const seaF={cargo:true,tanker:true,passenger:true,military:true,other:true};
 
@@ -389,86 +462,123 @@ function initMap(){
   map=L.map("map",{
     center:[44,11],zoom:6,
     zoomControl:true,
-    tap:true,           // touch iOS
-    tapTolerance:15,
+    tap:true,tapTolerance:20,
     touchZoom:true,
-    bounceAtZoomLimits:false
+    bounceAtZoomLimits:false,
+    // FIX iOS: impedisce che il click sulla mappa propaghi erroneamente
+    preferCanvas:false
   });
 
-  // Tile ottimizzate per mobile (dimensione ridotta)
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
     attribution:"&copy; OpenStreetMap",
-    maxZoom:13,minZoom:3,
-    tileSize:256,keepBuffer:1
+    maxZoom:13,minZoom:3,keepBuffer:1
   }).addTo(map);
 
   trailLayer=L.layerGroup().addTo(map);
   cluster=L.markerClusterGroup({
-    maxClusterRadius:60,    // più ampio su mobile (dita grandi)
+    maxClusterRadius:60,
     disableClusteringAtZoom:9,
     spiderfyOnMaxZoom:true,
     zoomToBoundsOnClick:true,
-    polygonOptions:{color:"#00e5ff",weight:1,fillOpacity:.04}
+    polygonOptions:{color:"#00e5ff",weight:1,fillOpacity:.04},
+    // FIX: impedisce che lo spiderfy apra il detail
+    spiderfyDistanceMultiplier:2
   });
   map.addLayer(cluster);
 
-  map.on("click",()=>{trailLayer.clearLayers();closeDetail();});
+  // FIX BUG PRINCIPALE: click sulla mappa chiude detail e sheet
+  // Usiamo 'click' E 'touchstart' per iOS
+  map.on("click", e=>{
+    // Non chiudere se si clicca su un marker (gestito separatamente)
+    trailLayer.clearLayers();
+    closeDetail();
+    closeSheet();
+  });
+
+  // Aggiorna dimensioni mappa dopo resize/orientamento
+  window.addEventListener("resize",()=>{ setTimeout(()=>map.invalidateSize(),150); });
+  window.addEventListener("orientationchange",()=>{ setTimeout(()=>map.invalidateSize(),300); });
   setTimeout(()=>map.invalidateSize(),300);
-  window.addEventListener("resize",()=>{ setTimeout(()=>map.invalidateSize(),100); });
 
-  // Swipe down su sheet per chiuderlo
-  initSheetSwipe();
-  initDetailSwipe();
+  // Swipe gestures
+  initSwipe($("sheet"),  closeSheet,  60);
+  initSwipe($("detail"), closeDetail, 80);
 }
 
 // ══════════════════════════════════════════════════════════
-// SWIPE GESTURES
+// SWIPE TO DISMISS — robusto per iOS
 // ══════════════════════════════════════════════════════════
-function initSheetSwipe(){
-  const el=$("sheet");
-  let startY=0,dragging=false;
-  el.addEventListener("touchstart",e=>{startY=e.touches[0].clientY;dragging=true},{passive:true});
-  el.addEventListener("touchmove",e=>{
+function initSwipe(el, onDismiss, threshold){
+  let startY=0, currentY=0, dragging=false;
+  // Solo l'handle attiva lo swipe (non tutta la surface, evita conflitti scroll)
+  const handle=el.querySelector(".sh-handle, .det-handle");
+  const target=handle||el;
+
+  target.addEventListener("touchstart",e=>{
+    startY=e.touches[0].clientY;
+    currentY=startY;
+    dragging=true;
+    el.style.transition="none";
+    el.style.webkitTransition="none";
+  },{passive:true});
+
+  target.addEventListener("touchmove",e=>{
     if(!dragging)return;
-    const dy=e.touches[0].clientY-startY;
-    if(dy>0) el.style.transform=`translateY(${dy}px)`;
+    currentY=e.touches[0].clientY;
+    const dy=currentY-startY;
+    if(dy>0){
+      el.style.transform=`translateY(${dy}px)`;
+      el.style.webkitTransform=`translateY(${dy}px)`;
+    }
   },{passive:true});
-  el.addEventListener("touchend",e=>{
-    dragging=false;
-    const dy=e.changedTouches[0].clientY-startY;
-    el.style.transform="";
-    if(dy>60)closeSheet();
-  },{passive:true});
-}
-function initDetailSwipe(){
-  const el=$("detail");
-  let startY=0,dragging=false;
-  el.addEventListener("touchstart",e=>{startY=e.touches[0].clientY;dragging=true},{passive:true});
-  el.addEventListener("touchmove",e=>{
+
+  target.addEventListener("touchend",()=>{
     if(!dragging)return;
-    const dy=e.touches[0].clientY-startY;
-    if(dy>0) el.style.transform=`translateY(${dy}px)`;
-  },{passive:true});
-  el.addEventListener("touchend",e=>{
     dragging=false;
-    const dy=e.changedTouches[0].clientY-startY;
+    const dy=currentY-startY;
+    el.style.transition="";
+    el.style.webkitTransition="";
     el.style.transform="";
-    if(dy>80)closeDetail();
+    el.style.webkitTransform="";
+    if(dy>threshold) onDismiss();
   },{passive:true});
 }
 
 // ══════════════════════════════════════════════════════════
-// SHEET TOGGLE
+// SHEET
 // ══════════════════════════════════════════════════════════
 function toggleSheet(){
   sheetOpen=!sheetOpen;
   $("sheet").classList.toggle("open",sheetOpen);
   $("nav-list").classList.toggle("list-on",sheetOpen);
+  if(sheetOpen) closeDetail();
 }
 function closeSheet(){
   sheetOpen=false;
   $("sheet").classList.remove("open");
   $("nav-list").classList.remove("list-on");
+}
+
+// ══════════════════════════════════════════════════════════
+// DETAIL — BUG FIX CHIUSURA
+// ══════════════════════════════════════════════════════════
+function showDetail(){
+  detailVisible=true;
+  $("detail").classList.add("show");
+  $("overlay").classList.add("show");
+  closeSheet();
+  // Scroll dettaglio in cima ogni volta
+  $("det-scroll").scrollTop=0;
+}
+
+function closeDetail(){
+  if(!detailVisible)return;
+  detailVisible=false;
+  $("detail").classList.remove("show");
+  $("overlay").classList.remove("show");
+  // Reset transform manuale (in caso swipe interrotto)
+  $("detail").style.transform="";
+  $("detail").style.webkitTransform="";
 }
 
 // ══════════════════════════════════════════════════════════
@@ -487,27 +597,27 @@ function drawTrail(lat,lon,track,speedMs){
     const lo2=lo+Math.atan2(Math.sin(br)*Math.sin(d)*Math.cos(la),Math.cos(d)-Math.sin(la)*Math.sin(la2));
     pts.push([dr(la2),dr(lo2)]);
   });
-  L.polyline(pts,{color:"#00e5ff",weight:10,opacity:.12}).addTo(trailLayer);
-  L.polyline(pts,{color:"#00e5ff",weight:4, opacity:.55}).addTo(trailLayer);
-  L.polyline(pts,{color:"#ffffff",weight:2, opacity:.95,dashArray:"10 7"}).addTo(trailLayer);
-  L.circleMarker(pts[pts.length-1],{radius:5,color:"#00e5ff",fillColor:"#00e5ff",fillOpacity:1,weight:2}).addTo(trailLayer);
+  L.polyline(pts,{color:"#00e5ff",weight:9,opacity:.12}).addTo(trailLayer);
+  L.polyline(pts,{color:"#00e5ff",weight:3,opacity:.6}).addTo(trailLayer);
+  L.polyline(pts,{color:"#ffffff",weight:1.5,opacity:.9,dashArray:"9 6"}).addTo(trailLayer);
+  L.circleMarker(pts[pts.length-1],{radius:5,color:"#00e5ff",fillColor:"#00e5ff",fillOpacity:1,weight:1.5}).addTo(trailLayer);
   pts.slice(1).forEach((p,i)=>{
     L.marker(p,{icon:L.divIcon({
       className:"",
-      html:`<div style="font-size:10px;font-weight:700;color:#00e5ff;text-shadow:0 0 8px #00e5ff,0 0 2px #000;white-space:nowrap;margin-left:8px">+${steps[i]}min</div>`,
+      html:`<div style="font-size:10px;font-weight:700;color:#00e5ff;text-shadow:0 0 6px #00e5ff,0 0 2px #000;white-space:nowrap;margin-left:7px">+${steps[i]}min</div>`,
       iconAnchor:[0,8]
     })}).addTo(trailLayer);
   });
 }
 
 // ══════════════════════════════════════════════════════════
-// ICONE (più grandi per mobile)
+// ICONE
 // ══════════════════════════════════════════════════════════
 function planeIcon(track,mil){
   const r=typeof track==="number"?track:0,c=mil?"#4caf50":"#ffd500";
-  return L.divIcon({className:"",iconSize:[28,28],iconAnchor:[14,14],
-    html:`<div style="width:28px;height:28px;transform:rotate(${r}deg);transform-origin:center">
-      <svg viewBox="0 0 24 24" width="28" height="28">
+  return L.divIcon({className:"",iconSize:[30,30],iconAnchor:[15,15],
+    html:`<div style="width:30px;height:30px;transform:rotate(${r}deg);transform-origin:center">
+      <svg viewBox="0 0 24 24" width="30" height="30">
         <path fill="${c}" stroke="#000" stroke-width=".5"
           d="M12 2c-.4 0-.77.24-.92.62L9.2 8.5 4 10.5v1l4.5-.5L11 15l-2.5 2-2 .5v1l3-.3L12 17l2.5 1.2 3 .3v-1l-2-.5L13 15l2.5-4.5L20 11.5v-1L14.8 8.5 12.92 2.62A1 1 0 0 0 12 2z"/>
       </svg></div>`});
@@ -523,19 +633,15 @@ function shipIcon(track,type){
 }
 
 // ══════════════════════════════════════════════════════════
-// DETAIL PANEL
+// FOTO
 // ══════════════════════════════════════════════════════════
-function showDetail(){
-  closeSheet();
-  $("detail").classList.add("show");
-}
-function closeDetail(){$("detail").classList.remove("show")}
-
 function loadAirPhoto(icao){
   const w=$("det-img");
   w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Caricamento foto…</span></div>`;
+  if(!icao){w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>ICAO non disponibile</span></div>`;return}
   fetch(`https://api.planespotters.net/pub/photos/hex/${icao.toLowerCase()}`)
-    .then(r=>r.json()).then(d=>{
+    .then(r=>r.ok?r.json():Promise.reject())
+    .then(d=>{
       const ph=d.photos;
       if(ph&&ph.length>0){
         const src=ph[0].thumbnail_large?.src||ph[0].thumbnail?.src;
@@ -543,11 +649,11 @@ function loadAirPhoto(icao){
           const cr=ph[0].photographer||"";
           w.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover"
             onerror="this.parentElement.innerHTML='<div class=ph><span class=ico>✈</span><span>Nessuna foto</span></div>'"/>
-            ${cr?`<div style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,.45);background:rgba(0,0,0,.6);padding:2px 7px;border-radius:5px">📷 ${cr}</div>`:""}`;
+            ${cr?`<div style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.6);padding:2px 8px;border-radius:6px">📷 ${cr}</div>`:""}`;
           return;
         }
       }
-      w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Nessuna foto</span></div>`;
+      w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Nessuna foto disponibile</span></div>`;
     }).catch(()=>{w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Foto non disponibile</span></div>`});
 }
 
@@ -561,11 +667,14 @@ function loadShipPhoto(mmsi){
   img.src=url;
 }
 
+// ══════════════════════════════════════════════════════════
+// OPEN DETAIL — aereo
+// ══════════════════════════════════════════════════════════
 function openAirDetail(s){
   const m=isMil(s),g=s[8];
   const cs=(s[1]||"").trim()||"Senza callsign";
   setT("det-cs",cs);
-  setT("det-id","ICAO24: "+(s[0]||"").toUpperCase());
+  setT("det-id","ICAO24: "+(s[0]||"—").toUpperCase());
   setT("d-c",s[2]||"—");
   setT("d-a",m2ft(s[7]));
   setT("d-s",ms2k(s[9]));
@@ -573,15 +682,20 @@ function openAirDetail(s){
   setT("d-p",(typeof s[6]==="number"&&typeof s[5]==="number")?s[6].toFixed(3)+", "+s[5].toFixed(3):"—");
   setT("d-g",g?"🔴 A terra":"🟢 In volo");
   $("row-alt").style.display="flex";
-  $("det-tags").innerHTML=`<span class="tag ${g?"t-gnd":"t-fly"}">${g?"A terra":"In volo"}</span>
+  $("det-tags").innerHTML=`
+    <span class="tag ${g?"t-gnd":"t-fly"}">${g?"A terra":"In volo"}</span>
     <span class="tag ${m?"t-mil":"t-civ"}">${m?"Militare":"Civile"}</span>`;
-  const de=$("det-desc"),desc=airDesc(cs,m);
-  de.textContent=desc;de.style.display="block";
+  const de=$("det-desc");
+  de.textContent=airDesc(cs,m);
+  de.style.display="block";
   setT("det-credit","Foto: Planespotters.net · Dati: OpenSky Network");
   loadAirPhoto(s[0]||"");
   showDetail();
 }
 
+// ══════════════════════════════════════════════════════════
+// OPEN DETAIL — nave
+// ══════════════════════════════════════════════════════════
 function openSeaDetail(ship){
   const t=sType(ship.shipType||ship.type||0);
   setT("det-cs",ship.name||("MMSI: "+ship.mmsi));
@@ -595,7 +709,8 @@ function openSeaDetail(ship){
   $("row-alt").style.display="none";
   $("det-tags").innerHTML=`<span class="tag t-sea">${t}</span><span class="tag t-sea">⛵ Nave</span>`;
   const de=$("det-desc");
-  de.textContent=`${t} — rilevato via AIS (Automatic Identification System).`;de.style.display="block";
+  de.textContent=`${t} — rilevato via AIS (Automatic Identification System).`;
+  de.style.display="block";
   setT("det-credit","Foto: MarineTraffic · Dati: AIS");
   loadShipPhoto(ship.mmsi||"0");
   showDetail();
@@ -605,7 +720,9 @@ function openSeaDetail(ship){
 // RENDER AEREI
 // ══════════════════════════════════════════════════════════
 function renderAir(){
-  cluster.clearLayers();trailLayer.clearLayers();closeDetail();
+  cluster.clearLayers();
+  trailLayer.clearLayers();
+  // NON chiudere il detail qui — solo se cambio modalità
   const batch=[];
   lastAir.forEach(s=>{
     if(!s||s.length<7)return;
@@ -614,13 +731,20 @@ function renderAir(){
     if(!passAir(s))return;
     const m=isMil(s);
     const mk=L.marker([la,lo],{icon:planeIcon(s[10],m)});
-    mk.on("click",()=>{drawTrail(la,lo,s[10]||0,s[9]);openAirDetail(s)});
+    // FIX BUG: stopPropagation impedisce che il click passi alla mappa
+    mk.on("click",e=>{
+      L.DomEvent.stopPropagation(e);
+      drawTrail(la,lo,s[10]||0,s[9]);
+      openAirDetail(s);
+    });
     batch.push(mk);
   });
   cluster.addLayers(batch);
+
+  // Sidebar
   const v=lastAir.filter(s=>s&&s.length>=7&&typeof s[6]==="number"&&passAir(s));
   $("sb-count").textContent=v.length;
-  $("sb-count").style.cssText="background:#ffd500;color:#000;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px";
+  $("sb-count").style.cssText="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:#ffd500;color:#000";
   const el=$("sb-list");el.innerHTML="";
   if(!v.length){el.innerHTML=`<div class="empty">Nessun volo con questi filtri.</div>`;return}
   v.slice(0,150).forEach(s=>{
@@ -646,23 +770,26 @@ function renderAir(){
 // RENDER NAVI
 // ══════════════════════════════════════════════════════════
 function renderSea(){
-  cluster.clearLayers();trailLayer.clearLayers();closeDetail();
+  cluster.clearLayers();
+  trailLayer.clearLayers();
   const batch=[];
   lastSea.forEach(ship=>{
     if(typeof ship.lat!=="number"||typeof ship.lon!=="number")return;
     if(!passSea(ship))return;
     const t=sType(ship.shipType||ship.type||0);
     const mk=L.marker([ship.lat,ship.lon],{icon:shipIcon(ship.cog,t)});
-    mk.on("click",()=>{
+    mk.on("click",e=>{
+      L.DomEvent.stopPropagation(e);
       drawTrail(ship.lat,ship.lon,ship.cog||0,(ship.sog||0)*.5144);
       openSeaDetail(ship);
     });
     batch.push(mk);
   });
   cluster.addLayers(batch);
+
   const v=lastSea.filter(s=>typeof s.lat==="number"&&passSea(s));
   $("sb-count").textContent=v.length;
-  $("sb-count").style.cssText="background:#00b4d8;color:#000;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px";
+  $("sb-count").style.cssText="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:#00b4d8;color:#000";
   const el=$("sb-list");el.innerHTML="";
   if(!v.length){el.innerHTML=`<div class="empty">Nessuna nave con questi filtri.</div>`;return}
   v.slice(0,150).forEach(ship=>{
@@ -703,17 +830,15 @@ async function fetchAir(){
 }
 
 // ══════════════════════════════════════════════════════════
-// FETCH NAVI — 3 tier + demo
+// FETCH NAVI — Digitraffic → AISStream → Demo
 // ══════════════════════════════════════════════════════════
 async function fetchSea(){
   if(mode!=="sea")return;
   const B=SEA_BBOX,st=$("status");
 
-  // TIER 1: Digitraffic
   try{
     st.textContent="Caricamento navi AIS…";
-    const res=await fetch("https://meri.digitraffic.fi/api/v1/locations/latest",
-      {signal:AbortSignal.timeout(7000)});
+    const res=await fetch("https://meri.digitraffic.fi/api/v1/locations/latest",{signal:AbortSignal.timeout(7000)});
     if(res.ok){
       const d=await res.json();
       const feats=(d.features||[]).filter(f=>{
@@ -723,9 +848,8 @@ async function fetchSea(){
       if(feats.length>0){
         lastSea=feats.map(f=>{
           const[lo,la]=f.geometry.coordinates,p=f.properties||{};
-          return{mmsi:p.mmsi,name:p.name||("MMSI "+p.mmsi),
-                 lat:la,lon:lo,sog:p.sog,cog:p.cog,
-                 shipType:p.shipType||0,navStatus:p.navStat||"—",country:"—"};
+          return{mmsi:p.mmsi,name:p.name||("MMSI "+p.mmsi),lat:la,lon:lo,
+                 sog:p.sog,cog:p.cog,shipType:p.shipType||0,navStatus:p.navStat||"—",country:"—"};
         });
         renderSea();
         st.textContent=`✓ ${lastSea.length} navi · ${new Date().toLocaleTimeString()}`;
@@ -734,12 +858,11 @@ async function fetchSea(){
     }
   }catch(e){console.warn("Digitraffic:",e.message)}
 
-  // TIER 2: AISStream WebSocket
   if(AISSTREAM_KEY){
     try{
       st.textContent="Connessione AIS WebSocket…";
       const ships={};
-      await new Promise((resolve,reject)=>{
+      await new Promise((resolve)=>{
         const ws=new WebSocket("wss://stream.aisstream.io/v0/stream");
         const t=setTimeout(()=>{ws.close();resolve()},8000);
         ws.onopen=()=>ws.send(JSON.stringify({
@@ -763,48 +886,46 @@ async function fetchSea(){
             if(Object.keys(ships).length>=80){clearTimeout(t);ws.close();resolve()}
           }catch(_){}
         };
-        ws.onerror=()=>{clearTimeout(t);reject()};
-        ws.onclose=()=>{clearTimeout(t);resolve()};
+        ws.onerror=ws.onclose=()=>{clearTimeout(t);resolve()};
       });
       const arr=Object.values(ships).filter(s=>typeof s.lat==="number");
       if(arr.length>0){
         lastSea=arr;renderSea();
-        st.textContent=`✓ ${lastSea.length} navi (live) · ${new Date().toLocaleTimeString()}`;
+        st.textContent=`✓ ${lastSea.length} navi live · ${new Date().toLocaleTimeString()}`;
         return;
       }
     }catch(e){console.warn("AISStream:",e.message)}
   }
 
-  // TIER 3: Demo
+  // Demo
   st.textContent="⚠ Demo — API AIS non disponibili";
   lastSea=[
-    {mmsi:"247100001",name:"MSC ROMA",        lat:43.82,lon:7.77, sog:16,cog:105,shipType:71,navStatus:"In rotta",country:"Italy"},
-    {mmsi:"247100002",name:"COSTA SMERALDA",  lat:43.50,lon:9.10, sog:18,cog:210,shipType:60,navStatus:"In rotta",country:"Italy"},
-    {mmsi:"247100003",name:"GRIMALDI LINES",  lat:44.10,lon:8.35, sog:14,cog:185,shipType:70,navStatus:"In rotta",country:"Italy"},
-    {mmsi:"247100004",name:"TIRRENIA E.",     lat:42.10,lon:11.50,sog:15,cog:315,shipType:60,navStatus:"In rotta",country:"Italy"},
-    {mmsi:"247100005",name:"ENI TANKER 1",    lat:43.20,lon:13.20,sog:10,cog:270,shipType:80,navStatus:"In rotta",country:"Italy"},
-    {mmsi:"636015001",name:"MAERSK TARANTO",  lat:40.42,lon:17.22,sog:0, cog:0,  shipType:70,navStatus:"In porto",country:"Denmark"},
-    {mmsi:"248100001",name:"VENEZIA CARGO",   lat:45.35,lon:12.35,sog:5, cog:90, shipType:70,navStatus:"In porto",country:"Italy"},
-    {mmsi:"247900001",name:"G.COSTIERA CP",   lat:44.40,lon:8.92, sog:22,cog:45, shipType:35,navStatus:"Servizio",country:"Italy"},
-    {mmsi:"247100008",name:"BULK SICILIA",    lat:38.10,lon:15.60,sog:8, cog:330,shipType:70,navStatus:"In rotta",country:"Italy"},
-    {mmsi:"247100009",name:"ADRIATIC FERRY",  lat:41.63,lon:16.50,sog:20,cog:120,shipType:60,navStatus:"In rotta",country:"Italy"},
-    {mmsi:"229100001",name:"MSC GENOVA",      lat:44.25,lon:8.55, sog:12,cog:160,shipType:71,navStatus:"In rotta",country:"Malta"},
-    {mmsi:"247100011",name:"LIVORNO PORT",    lat:43.55,lon:10.30,sog:0, cog:0,  shipType:70,navStatus:"In porto",country:"Italy"},
-    {mmsi:"247100012",name:"GNV AZZURRA",     lat:43.10,lon:9.50, sog:17,cog:190,shipType:60,navStatus:"In rotta",country:"Italy"},
+    {mmsi:"247100001",name:"MSC ROMA",       lat:43.82,lon:7.77, sog:16,cog:105,shipType:71,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100002",name:"COSTA SMERALDA", lat:43.50,lon:9.10, sog:18,cog:210,shipType:60,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100003",name:"GRIMALDI LINES", lat:44.10,lon:8.35, sog:14,cog:185,shipType:70,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100004",name:"TIRRENIA E.",    lat:42.10,lon:11.50,sog:15,cog:315,shipType:60,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100005",name:"ENI TANKER 1",   lat:43.20,lon:13.20,sog:10,cog:270,shipType:80,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"636015001",name:"MAERSK TARANTO", lat:40.42,lon:17.22,sog:0, cog:0,  shipType:70,navStatus:"In porto",   country:"Denmark"},
+    {mmsi:"248100001",name:"VENEZIA CARGO",  lat:45.35,lon:12.35,sog:5, cog:90, shipType:70,navStatus:"In porto",   country:"Italy"},
+    {mmsi:"247900001",name:"G.COSTIERA CP",  lat:44.40,lon:8.92, sog:22,cog:45, shipType:35,navStatus:"In servizio",country:"Italy"},
+    {mmsi:"247100008",name:"BULK SICILIA",   lat:38.10,lon:15.60,sog:8, cog:330,shipType:70,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100009",name:"ADRIATIC FERRY", lat:41.63,lon:16.50,sog:20,cog:120,shipType:60,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"229100001",name:"MSC GENOVA",     lat:44.25,lon:8.55, sog:12,cog:160,shipType:71,navStatus:"In rotta",   country:"Malta"},
+    {mmsi:"247100011",name:"LIVORNO PORT",   lat:43.55,lon:10.30,sog:0, cog:0,  shipType:70,navStatus:"In porto",   country:"Italy"},
+    {mmsi:"247100012",name:"GNV AZZURRA",    lat:43.10,lon:9.50, sog:17,cog:190,shipType:60,navStatus:"In rotta",   country:"Italy"},
   ];
   renderSea();
 }
 
 // ══════════════════════════════════════════════════════════
-// VENTO — griglia 10×8, formato corretto leaflet-velocity
+// VENTO
 // ══════════════════════════════════════════════════════════
 async function fetchAndShowWind(){
   const st=$("status");
   try{
     if(windLayer){map.removeLayer(windLayer);windLayer=null}
     st.textContent="💨 Caricamento vento…";
-    const nx=10,ny=8;
-    const lo1=5.0,lo2=18.0,la1=48.0,la2=37.0;
+    const nx=10,ny=8,lo1=5,lo2=18,la1=48,la2=37;
     const dx=(lo2-lo1)/(nx-1),dy=(la1-la2)/(ny-1);
     const lats=[],lons=[];
     for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
@@ -820,48 +941,32 @@ async function fetchAndShowWind(){
     const uArr=[],vArr=[];
     results.forEach(loc=>{
       const times=loc.hourly?.time||[];
-      let idx=times.findIndex(t=>t>=now);
-      if(idx<0)idx=0;
+      let idx=times.findIndex(t=>t>=now);if(idx<0)idx=0;
       const spd=(loc.hourly?.wind_speed_10m?.[idx]||0)/3.6;
-      const dir=(loc.hourly?.wind_direction_10m?.[idx]||0);
+      const dir=loc.hourly?.wind_direction_10m?.[idx]||0;
       const rad=dir*Math.PI/180;
       uArr.push(-(spd*Math.sin(rad)));
       vArr.push(-(spd*Math.cos(rad)));
     });
     while(uArr.length<nx*ny){uArr.push(0);vArr.push(0)}
-    const header={
-      parameterCategory:2,nx,ny,
-      lo1,lo2,la1,la2,dx,dy,
-      refTime:new Date().toISOString()
-    };
+    const hdr={parameterCategory:2,nx,ny,lo1,lo2,la1,la2,dx,dy,refTime:new Date().toISOString()};
     windLayer=L.velocityLayer({
       displayValues:true,
-      displayOptions:{
-        velocityType:"Vento",
-        displayPosition:"bottomleft",
-        displayEmptyString:"Nessun dato",
-        angleConvention:"bearingCW",
-        speedUnit:"k/h"
-      },
+      displayOptions:{velocityType:"Vento",displayPosition:"bottomleft",displayEmptyString:"Nessun dato",angleConvention:"bearingCW",speedUnit:"k/h"},
       data:[
-        {header:{...header,parameterNumber:2,parameterNumberName:"eastward_wind"},  data:uArr},
-        {header:{...header,parameterNumber:3,parameterNumberName:"northward_wind"}, data:vArr}
+        {header:{...hdr,parameterNumber:2,parameterNumberName:"eastward_wind"}, data:uArr},
+        {header:{...hdr,parameterNumber:3,parameterNumberName:"northward_wind"},data:vArr}
       ],
-      maxVelocity:20,minVelocity:0,
-      velocityScale:0.006,
+      maxVelocity:20,minVelocity:0,velocityScale:.006,
       colorScale:["#e0f7ff","#7ecfff","#00aaff","#0066ff","#a855f7","#e040fb"],
-      opacity:0.92,
-      particleAge:90,
-      particleMultiplier:1/200
+      opacity:.92,particleAge:90,particleMultiplier:1/200
     });
     map.addLayer(windLayer);
-    const avgMs=Math.sqrt(uArr.reduce((a,b)=>a+b*b,0)/uArr.length);
-    st.textContent=`💨 Vento ~${(avgMs*3.6).toFixed(0)} km/h · ${new Date().toLocaleTimeString()}`;
+    const avg=Math.sqrt(uArr.reduce((a,b)=>a+b*b,0)/uArr.length);
+    st.textContent=`💨 Vento ~${(avg*3.6).toFixed(0)} km/h · ${new Date().toLocaleTimeString()}`;
   }catch(e){
-    console.error("Wind:",e);
-    st.textContent="✗ Errore vento";
-    $("nav-wind").classList.remove("wind-on");
-    windOn=false;
+    console.error(e);st.textContent="✗ Errore vento";
+    $("nav-wind").classList.remove("wind-on");windOn=false;
   }
 }
 
@@ -895,26 +1000,17 @@ function buildFilters(){
       <div class="fb on"     data-k="other"     onclick="tsf(this)">🔹 Altro</div>`;
   }
 }
-function taf(btn){
-  const k=btn.dataset.k;airF[k]=!airF[k];
-  btn.className="fb"+(airF[k]?(k==="mil"?" on-mil":k==="gnd"?" on-gnd":" on"):"");
-  renderAir();
-}
-function tsf(btn){
-  const k=btn.dataset.k;seaF[k]=!seaF[k];
-  btn.className="fb"+(seaF[k]?(k==="military"?" on-mil":" on-sea"):"");
-  renderSea();
-}
+function taf(b){const k=b.dataset.k;airF[k]=!airF[k];b.className="fb"+(airF[k]?(k==="mil"?" on-mil":k==="gnd"?" on-gnd":" on"):"");renderAir()}
+function tsf(b){const k=b.dataset.k;seaF[k]=!seaF[k];b.className="fb"+(seaF[k]?(k==="military"?" on-mil":" on-sea"):"");renderSea()}
 
 // ══════════════════════════════════════════════════════════
 // SWITCH MODALITÀ
 // ══════════════════════════════════════════════════════════
 function setMode(m){
   mode=m;
-  ["air","sea"].forEach(n=>{
-    $("nav-"+n).className="nav-btn"+(m===n?" "+n+"-on":"");
-  });
-  cluster.clearLayers();trailLayer.clearLayers();closeDetail();closeSheet();
+  ["air","sea"].forEach(n=>{$("nav-"+n).className="nb"+(m===n?" "+n+"-on":"")});
+  cluster.clearLayers();trailLayer.clearLayers();
+  closeDetail();closeSheet();
   clearInterval(airTimer);clearInterval(seaTimer);
   buildFilters();
   if(m==="air"){
@@ -929,8 +1025,10 @@ function setMode(m){
 // ══════════════════════════════════════════════════════════
 // AVVIO
 // ══════════════════════════════════════════════════════════
-initMap();buildFilters();
-fetchAir();airTimer=setInterval(fetchAir,20000);
+initMap();
+buildFilters();
+fetchAir();
+airTimer=setInterval(fetchAir,20000);
 </script>
 </body>
 </html>
