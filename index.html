@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
+  
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
@@ -222,23 +221,23 @@
       <span id="flightCount">0 aerei</span>
     </div>
     <div class="sidebar-body">
-      <div class="sidebar-section-title">Filtri tipo aeromobile</div>
+      <div class="sidebar-section-title">Filtri tipo aeromobile (se disponibili)</div>
       <div class="filters">
-        <label class="filter-item">
+        abel class="filter-item">
           <input type="checkbox" id="filterSmall" checked />
           <span>Piccoli / leggeri</span>
         </label>
-        <label class="filter-item">
+        abel class="filter-item">
           <input type="checkbox" id="filterMedium" checked />
           <span>Medi</span>
         </label>
-        <label class="filter-item">
+        abel class="filter-item">
           <input type="checkbox" id="filterLarge" checked />
           <span>Grandi / heavy</span>
         </label>
-        <label class="filter-item">
+        abel class="filter-item">
           <input type="checkbox" id="filterOther" checked />
-          <span>Alta perf. / rotori / altro</span>
+          <span>Altro / sconosciuto</span>
         </label>
       </div>
 
@@ -260,14 +259,13 @@
 ></script>
 
 <script>
-  // ---------------- CONFIGURAZIONE BASE ----------------
   const OPENSKY_URL = "https://opensky-network.org/api/states/all";
-  const LOCAL_DELTA_DEG = 5;      // ~550 km
-  const REFRESH_MS = 10000;       // 10s
+  const LOCAL_DELTA_DEG = 5;
+  const REFRESH_MS = 10000;
 
   let map;
   let aircraftLayerGroup;
-  let aircraftMarkers = new Map(); // key: icao24, value: marker
+  let aircraftMarkers = new Map();
   let lastUserPos = null;
   let lastStates = [];
 
@@ -281,14 +279,12 @@
   const filterLargeEl  = document.getElementById("filterLarge");
   const filterOtherEl  = document.getElementById("filterOther");
 
-  // ---------------- INIZIALIZZA MAPPA ----------------
   function initMap() {
     map = L.map("map", {
       worldCopyJump: true,
       zoomControl: true,
     }).setView([20, 0], 2);
 
-    // Tiles OpenStreetMap [web:6][web:9][web:12]
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 10,
       minZoom: 2,
@@ -298,7 +294,6 @@
     aircraftLayerGroup = L.layerGroup().addTo(map);
   }
 
-  // ---------------- GEOLOCALIZZAZIONE IP ----------------
   async function detectUserLocationByIP() {
     try {
       const resp = await fetch("https://ipapi.co/json/");
@@ -329,31 +324,28 @@
       return lastUserPos;
     } catch (err) {
       console.error(err);
-      elLocationStatus.textContent = "Impossibile rilevare posizione IP";
+      elLocationStatus.textContent = "Impossibile rilevare posizione IP (fallback Europa)";
       lastUserPos = { lat: 50, lon: 10 };
       map.setView([50, 10], 4);
       return lastUserPos;
     }
   }
 
-  // ---------------- HELP: CATEGORIA OPENSKY ----------------
-  // OpenSky category (index 17 dello state vector) [web:3]
-  // 2 = Light (< 15500 lbs)
-  // 3 = Small (15500–75000 lbs)
-  // 4 = Large (75000–300000 lbs)
-  // 5 = High vortex large
-  // 6 = Heavy (> 300000 lbs)
-  // 7 = High performance
-  // 8 = Rotorcraft
-  // 9+ = altri (glider, UAV, ecc.)
+  // --- MAPPATURA CATEGORIA (tollerante) ---
+  function getCategory(state) {
+    // la risposta OpenSky a volte ha 17 o 18 campi; cat è definito come indice 17, ma può mancare [web:3][web:39]
+    if (!Array.isArray(state)) return null;
+    if (state.length >= 18) return state[17];
+    return null;
+  }
+
   function mapCategoryToGroup(cat) {
     if (typeof cat !== "number") return "other";
 
     if (cat === 2 || cat === 3) return "small";
     if (cat === 4) return "medium";
     if (cat === 5 || cat === 6) return "large";
-    if (cat >= 7 && cat <= 12) return "other"; // high perf, rotorcraft, glider, ultralight…
-    if (cat >= 13 && cat <= 20) return "other";
+    if (cat >= 7 && cat <= 20) return "other";
     return "other";
   }
 
@@ -365,7 +357,6 @@
     return true;
   }
 
-  // ---------------- FETCH TRAFFICO AEREO (OpenSky) ----------------
   async function fetchLocalTraffic() {
     if (!lastUserPos) return;
 
@@ -386,7 +377,6 @@
         throw new Error("Errore OpenSky: " + resp.status);
       }
       const data = await resp.json();
-      // { time, states: [ ... ] } [web:2][web:3][web:24]
       lastStates = Array.isArray(data.states) ? data.states : [];
       updateAircraftMarkers(lastStates);
       updateSidebar(lastStates);
@@ -397,12 +387,10 @@
     }
   }
 
-  // ---------------- ICONA AEREO ----------------
   function createAircraftIcon(trackDeg, group) {
     const rotation = typeof trackDeg === "number" ? trackDeg : 0;
 
-    // Colori diversi per gruppo (opzionale)
-    let color = "#ffd500"; // default
+    let color = "#ffd500";
     if (group === "small")  color = "#4ea1ff";
     if (group === "medium") color = "#ffd500";
     if (group === "large")  color = "#ff6b6b";
@@ -426,22 +414,21 @@
     });
   }
 
-  // ---------------- GESTIONE MARKER AEREI ----------------
   function updateAircraftMarkers(states) {
     const seen = new Set();
 
     states.forEach(s => {
-      // indice campi: [0]=icao24, [1]=callsign, [2]=origin_country, [5]=lon, [6]=lat, [7]=baro_alt, [8]=on_ground, [9]=vel, [10]=track, [17]=category [web:3]
-      if (!s || s.length < 18) return;
+      if (!s || s.length < 7) return;
       const icao24 = s[0];
       const lon = s[5];
       const lat = s[6];
       const track = s[10];
-      const cat = s[17];
 
       if (typeof lat !== "number" || typeof lon !== "number") return;
 
+      const cat = getCategory(s);
       const group = mapCategoryToGroup(cat);
+
       if (!isGroupVisible(group)) return;
 
       seen.add(icao24);
@@ -466,7 +453,6 @@
       }
     });
 
-    // rimuovi aerei non più presenti o filtrati
     for (const [icao24, marker] of aircraftMarkers.entries()) {
       if (!seen.has(icao24)) {
         aircraftLayerGroup.removeLayer(marker);
@@ -485,7 +471,7 @@
     const onGround = state[8];
     const velocity = state[9];
     const track = state[10];
-    const cat = state[17];
+    const cat = getCategory(state);
 
     const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
     const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
@@ -495,11 +481,10 @@
       : "N/D";
 
     const group = mapCategoryToGroup(cat);
-    let groupLabel = "N/D";
+    let groupLabel = "Altro / sconosciuto";
     if (group === "small")  groupLabel = "Piccoli / leggeri";
     if (group === "medium") groupLabel = "Medi";
     if (group === "large")  groupLabel = "Grandi / heavy";
-    if (group === "other")  groupLabel = "Alta perf. / rotori / altro";
 
     return `
       <div style="min-width: 190px;">
@@ -511,7 +496,7 @@
           <div><strong>Velocit&agrave;:</strong> ${spdKts}</div>
           <div><strong>Prua:</strong> ${hdg}</div>
           <div><strong>Posizione:</strong> ${posStr}</div>
-          <div><strong>Categoria:</strong> ${groupLabel} (cat=${cat ?? "N/D"})</div>
+          <div><strong>Categoria:</strong> ${groupLabel} (${cat ?? "N/D"})</div>
           <div style="margin-top:4px;"><strong>Stato:</strong> ${onGround ? "A terra" : "In volo"}</div>
         </div>
         <div style="margin-top:6px;font-size:10px;color:#999;">
@@ -521,17 +506,15 @@
     `;
   }
 
-  // ---------------- SIDEBAR LISTA VOLI ----------------
   function updateSidebar(states) {
     elFlightList.innerHTML = "";
 
-    // Applica gli stessi filtri usati per i marker
     const visibleStates = states.filter(s => {
-      if (!s || s.length < 18) return false;
+      if (!s || s.length < 7) return false;
       const lon = s[5];
       const lat = s[6];
       if (typeof lat !== "number" || typeof lon !== "number") return false;
-      const cat = s[17];
+      const cat = getCategory(s);
       const group = mapCategoryToGroup(cat);
       return isGroupVisible(group);
     });
@@ -542,7 +525,7 @@
     if (count === 0) {
       const div = document.createElement("div");
       div.className = "info-line";
-      div.textContent = "Nessun volo visibile con i filtri attuali.";
+      div.textContent = "Nessun volo visibile (zona poco coperta o limiti API).";
       elFlightList.appendChild(div);
       return;
     }
@@ -556,16 +539,15 @@
         const baroAlt = s[7];
         const velocity = s[9];
         const onGround = s[8];
-        const cat = s[17];
+        const cat = getCategory(s);
 
         const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
         const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
         const group = mapCategoryToGroup(cat);
-        let badgeText = "ALTRO";
+        let badgeText = "OTHER";
         if (group === "small")  badgeText = "SMALL";
         if (group === "medium") badgeText = "MED";
         if (group === "large")  badgeText = "LARGE";
-        if (group === "other")  badgeText = "OTHER";
 
         const row = document.createElement("div");
         row.className = "flight-row";
@@ -590,9 +572,7 @@
       });
   }
 
-  // ---------------- EVENTI FILTRI ----------------
   function onFiltersChanged() {
-    // ricostruisci marker e sidebar usando lastStates + nuovi filtri
     updateAircraftMarkers(lastStates);
     updateSidebar(lastStates);
   }
@@ -602,7 +582,6 @@
   filterLargeEl.addEventListener("change", onFiltersChanged);
   filterOtherEl.addEventListener("change", onFiltersChanged);
 
-  // ---------------- AVVIO APP ----------------
   (async function main() {
     initMap();
     await detectUserLocationByIP();
