@@ -52,27 +52,31 @@
     #map {
       flex: 1;
       width: 100%;
+      position: relative;
     }
 
     .leaflet-container {
       background: #000;
     }
 
-    .aircraft-marker {
-      width: 18px;
-      height: 18px;
-      background: rgba(255, 213, 0, 0.95);
-      border-radius: 50% 50% 0 0;
-      border: 1px solid #333;
-      transform-origin: 50% 70%;
-      box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    /* ICONA AEREO (SVG via DivIcon) */
+    .aircraft-icon {
+      width: 22px;
+      height: 22px;
+      transform-origin: 50% 50%;
+    }
+
+    .aircraft-icon svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
     }
 
     .sidebar {
       position: absolute;
       top: 56px;
       right: 8px;
-      width: 260px;
+      width: 280px;
       max-height: calc(100% - 64px);
       background: rgba(15,15,15,0.95);
       border-radius: 8px;
@@ -95,9 +99,46 @@
     }
 
     .sidebar-body {
-      padding: 6px 8px;
+      padding: 6px 8px 0 8px;
       font-size: 12px;
       overflow-y: auto;
+      flex: 1;
+    }
+
+    .sidebar-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      margin-bottom: 2px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #222;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #ccc;
+    }
+
+    .filter-item input[type="checkbox"] {
+      accent-color: #ffd500;
+      width: 12px;
+      height: 12px;
+    }
+
+    .flight-list {
+      margin-top: 4px;
+      padding-right: 2px;
     }
 
     .flight-row {
@@ -152,7 +193,7 @@
 
     @media (max-width: 768px) {
       .sidebar {
-        width: 200px;
+        width: 220px;
       }
       header {
         flex-direction: column;
@@ -173,14 +214,39 @@
     </div>
   </header>
   <div id="map"></div>
+
+  <!-- SIDEBAR: FILTRI + LISTA VOLI -->
   <div class="sidebar">
     <div class="sidebar-header">
       <span>Traffico aereo locale</span>
       <span id="flightCount">0 aerei</span>
     </div>
-    <div class="sidebar-body" id="flightList">
-      <div class="info-line">
-        In attesa di localizzare il tuo IP e caricare i voli…
+    <div class="sidebar-body">
+      <div class="sidebar-section-title">Filtri tipo aeromobile</div>
+      <div class="filters">
+        <label class="filter-item">
+          <input type="checkbox" id="filterSmall" checked />
+          <span>Piccoli / leggeri</span>
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" id="filterMedium" checked />
+          <span>Medi</span>
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" id="filterLarge" checked />
+          <span>Grandi / heavy</span>
+        </label>
+        <label class="filter-item">
+          <input type="checkbox" id="filterOther" checked />
+          <span>Alta perf. / rotori / altro</span>
+        </label>
+      </div>
+
+      <div class="sidebar-section-title">Voli</div>
+      <div class="flight-list" id="flightList">
+        <div class="info-line">
+          In attesa di localizzare il tuo IP e caricare i voli…
+        </div>
       </div>
     </div>
   </div>
@@ -196,19 +262,24 @@
 <script>
   // ---------------- CONFIGURAZIONE BASE ----------------
   const OPENSKY_URL = "https://opensky-network.org/api/states/all";
-  // Raggio approssimativo area locale in gradi (~5° ≈ 550 km)
-  const LOCAL_DELTA_DEG = 5;
-  const REFRESH_MS = 10000; // 10s
+  const LOCAL_DELTA_DEG = 5;      // ~550 km
+  const REFRESH_MS = 10000;       // 10s
 
   let map;
   let aircraftLayerGroup;
   let aircraftMarkers = new Map(); // key: icao24, value: marker
   let lastUserPos = null;
+  let lastStates = [];
 
   const elLocationStatus = document.getElementById("locationStatus");
   const elFetchStatus = document.getElementById("fetchStatus");
   const elFlightList = document.getElementById("flightList");
   const elFlightCount = document.getElementById("flightCount");
+
+  const filterSmallEl  = document.getElementById("filterSmall");
+  const filterMediumEl = document.getElementById("filterMedium");
+  const filterLargeEl  = document.getElementById("filterLarge");
+  const filterOtherEl  = document.getElementById("filterOther");
 
   // ---------------- INIZIALIZZA MAPPA ----------------
   function initMap() {
@@ -217,7 +288,7 @@
       zoomControl: true,
     }).setView([20, 0], 2);
 
-    // Tiles OpenStreetMap (uso libero con attribution) [web:6][web:9][web:12]
+    // Tiles OpenStreetMap [web:6][web:9][web:12]
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 10,
       minZoom: 2,
@@ -230,7 +301,6 @@
   // ---------------- GEOLOCALIZZAZIONE IP ----------------
   async function detectUserLocationByIP() {
     try {
-      // ipapi.co: geolocalizzazione IP semplice, no key per base. [web:13]
       const resp = await fetch("https://ipapi.co/json/");
       if (!resp.ok) throw new Error("IP API error " + resp.status);
       const data = await resp.json();
@@ -245,15 +315,13 @@
       elLocationStatus.textContent = `Posizione IP stimata: ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
       map.setView([lat, lon], 6);
 
-      // cerchio area di interesse
       L.circle([lat, lon], {
-        radius: 400000, // 400 km
+        radius: 400000,
         color: "#4ea1ff",
         weight: 1,
         fillOpacity: 0.02
       }).addTo(map);
 
-      // marker utente
       L.marker([lat, lon], {
         title: "La tua approssimativa posizione IP"
       }).addTo(map).bindPopup("Area locale (stima IP)").openPopup();
@@ -262,11 +330,39 @@
     } catch (err) {
       console.error(err);
       elLocationStatus.textContent = "Impossibile rilevare posizione IP";
-      // fallback: Europa centrale
       lastUserPos = { lat: 50, lon: 10 };
       map.setView([50, 10], 4);
       return lastUserPos;
     }
+  }
+
+  // ---------------- HELP: CATEGORIA OPENSKY ----------------
+  // OpenSky category (index 17 dello state vector) [web:3]
+  // 2 = Light (< 15500 lbs)
+  // 3 = Small (15500–75000 lbs)
+  // 4 = Large (75000–300000 lbs)
+  // 5 = High vortex large
+  // 6 = Heavy (> 300000 lbs)
+  // 7 = High performance
+  // 8 = Rotorcraft
+  // 9+ = altri (glider, UAV, ecc.)
+  function mapCategoryToGroup(cat) {
+    if (typeof cat !== "number") return "other";
+
+    if (cat === 2 || cat === 3) return "small";
+    if (cat === 4) return "medium";
+    if (cat === 5 || cat === 6) return "large";
+    if (cat >= 7 && cat <= 12) return "other"; // high perf, rotorcraft, glider, ultralight…
+    if (cat >= 13 && cat <= 20) return "other";
+    return "other";
+  }
+
+  function isGroupVisible(group) {
+    if (group === "small")  return filterSmallEl.checked;
+    if (group === "medium") return filterMediumEl.checked;
+    if (group === "large")  return filterLargeEl.checked;
+    if (group === "other")  return filterOtherEl.checked;
+    return true;
   }
 
   // ---------------- FETCH TRAFFICO AEREO (OpenSky) ----------------
@@ -276,7 +372,6 @@
     const lat = lastUserPos.lat;
     const lon = lastUserPos.lon;
 
-    // bounding box per area locale [web:3]
     const lamin = lat - LOCAL_DELTA_DEG;
     const lamax = lat + LOCAL_DELTA_DEG;
     const lomin = lon - LOCAL_DELTA_DEG;
@@ -291,10 +386,10 @@
         throw new Error("Errore OpenSky: " + resp.status);
       }
       const data = await resp.json();
-      // Struttura: { time: int, states: [ [icao24, callsign, origin_country, time_position, last_contact, lon, lat, ... ] ] } [web:2][web:3]
-      const states = Array.isArray(data.states) ? data.states : [];
-      updateAircraftMarkers(states);
-      updateSidebar(states);
+      // { time, states: [ ... ] } [web:2][web:3][web:24]
+      lastStates = Array.isArray(data.states) ? data.states : [];
+      updateAircraftMarkers(lastStates);
+      updateSidebar(lastStates);
       elFetchStatus.textContent = `Ultimo aggiornamento: ${new Date().toLocaleTimeString()}`;
     } catch (err) {
       console.error(err);
@@ -302,41 +397,57 @@
     }
   }
 
-  // ---------------- GESTIONE MARKER AEREI ----------------
-  function createAircraftIcon(trackDeg) {
-    const div = document.createElement("div");
-    div.className = "aircraft-marker";
+  // ---------------- ICONA AEREO ----------------
+  function createAircraftIcon(trackDeg, group) {
     const rotation = typeof trackDeg === "number" ? trackDeg : 0;
-    div.style.transform = `rotate(${rotation}deg)`;
+
+    // Colori diversi per gruppo (opzionale)
+    let color = "#ffd500"; // default
+    if (group === "small")  color = "#4ea1ff";
+    if (group === "medium") color = "#ffd500";
+    if (group === "large")  color = "#ff6b6b";
+    if (group === "other")  color = "#9b5cff";
+
+    const svg = `
+      <div class="aircraft-icon" style="transform: rotate(${rotation}deg);">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <g fill="${color}">
+            <path d="M12 2c-.4 0-.77.24-.92.62L9.2 8.5 4 10.5v1l4.5-.5L11 15l-2.5 2-2 .5v1l3-.3L12 17l2.5 1.2 3 .3v-1l-2-.5L13 15l2.5-4.5L20 11.5v-1L14.8 8.5 12.92 2.62A1 1 0 0 0 12 2z"/>
+          </g>
+        </svg>
+      </div>
+    `;
+
     return L.divIcon({
-      html: div,
+      html: svg,
       className: "",
-      iconSize: [18, 18],
-      iconAnchor: [9, 12]
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
     });
   }
 
+  // ---------------- GESTIONE MARKER AEREI ----------------
   function updateAircraftMarkers(states) {
     const seen = new Set();
 
     states.forEach(s => {
-      if (!s || s.length < 8) return;
+      // indice campi: [0]=icao24, [1]=callsign, [2]=origin_country, [5]=lon, [6]=lat, [7]=baro_alt, [8]=on_ground, [9]=vel, [10]=track, [17]=category [web:3]
+      if (!s || s.length < 18) return;
       const icao24 = s[0];
-      const callsign = (s[1] || "").trim() || "Senza callsign";
-      const origin = s[2] || "";
       const lon = s[5];
       const lat = s[6];
-      const baroAlt = s[7];
-      const onGround = s[8];
-      const velocity = s[9]; // m/s
-      const track = s[10];   // deg
+      const track = s[10];
+      const cat = s[17];
 
       if (typeof lat !== "number" || typeof lon !== "number") return;
+
+      const group = mapCategoryToGroup(cat);
+      if (!isGroupVisible(group)) return;
 
       seen.add(icao24);
 
       const pos = [lat, lon];
-      const icon = createAircraftIcon(track);
+      const icon = createAircraftIcon(track, group);
 
       if (aircraftMarkers.has(icao24)) {
         const marker = aircraftMarkers.get(icao24);
@@ -355,7 +466,7 @@
       }
     });
 
-    // rimuovi aerei non più presenti
+    // rimuovi aerei non più presenti o filtrati
     for (const [icao24, marker] of aircraftMarkers.entries()) {
       if (!seen.has(icao24)) {
         aircraftLayerGroup.removeLayer(marker);
@@ -374,6 +485,7 @@
     const onGround = state[8];
     const velocity = state[9];
     const track = state[10];
+    const cat = state[17];
 
     const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
     const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
@@ -382,8 +494,15 @@
       ? `${lat.toFixed(3)}, ${lon.toFixed(3)}`
       : "N/D";
 
+    const group = mapCategoryToGroup(cat);
+    let groupLabel = "N/D";
+    if (group === "small")  groupLabel = "Piccoli / leggeri";
+    if (group === "medium") groupLabel = "Medi";
+    if (group === "large")  groupLabel = "Grandi / heavy";
+    if (group === "other")  groupLabel = "Alta perf. / rotori / altro";
+
     return `
-      <div style="min-width: 180px;">
+      <div style="min-width: 190px;">
         <div style="font-weight:600;font-size:13px;">${callsign}</div>
         <div style="font-size:11px;color:#777;">ICAO24: ${icao24.toUpperCase()}</div>
         <div style="margin-top:6px;font-size:11px;">
@@ -392,6 +511,7 @@
           <div><strong>Velocit&agrave;:</strong> ${spdKts}</div>
           <div><strong>Prua:</strong> ${hdg}</div>
           <div><strong>Posizione:</strong> ${posStr}</div>
+          <div><strong>Categoria:</strong> ${groupLabel} (cat=${cat ?? "N/D"})</div>
           <div style="margin-top:4px;"><strong>Stato:</strong> ${onGround ? "A terra" : "In volo"}</div>
         </div>
         <div style="margin-top:6px;font-size:10px;color:#999;">
@@ -404,20 +524,31 @@
   // ---------------- SIDEBAR LISTA VOLI ----------------
   function updateSidebar(states) {
     elFlightList.innerHTML = "";
-    const count = states.length;
+
+    // Applica gli stessi filtri usati per i marker
+    const visibleStates = states.filter(s => {
+      if (!s || s.length < 18) return false;
+      const lon = s[5];
+      const lat = s[6];
+      if (typeof lat !== "number" || typeof lon !== "number") return false;
+      const cat = s[17];
+      const group = mapCategoryToGroup(cat);
+      return isGroupVisible(group);
+    });
+
+    const count = visibleStates.length;
     elFlightCount.textContent = `${count} aerei`;
 
     if (count === 0) {
       const div = document.createElement("div");
       div.className = "info-line";
-      div.textContent = "Nessun volo ricevuto (possibili limiti API o zona poco coperta).";
+      div.textContent = "Nessun volo visibile con i filtri attuali.";
       elFlightList.appendChild(div);
       return;
     }
 
-    states
-      .filter(s => s && s.length >= 8 && typeof s[5] === "number" && typeof s[6] === "number")
-      .slice(0, 100) // limite UI
+    visibleStates
+      .slice(0, 120)
       .forEach(s => {
         const icao24 = s[0];
         const callsign = (s[1] || "").trim() || "Senza callsign";
@@ -425,9 +556,16 @@
         const baroAlt = s[7];
         const velocity = s[9];
         const onGround = s[8];
+        const cat = s[17];
 
         const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
         const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
+        const group = mapCategoryToGroup(cat);
+        let badgeText = "ALTRO";
+        if (group === "small")  badgeText = "SMALL";
+        if (group === "medium") badgeText = "MED";
+        if (group === "large")  badgeText = "LARGE";
+        if (group === "other")  badgeText = "OTHER";
 
         const row = document.createElement("div");
         row.className = "flight-row";
@@ -435,6 +573,7 @@
           <div class="flight-main">
             ${callsign}
             <span class="badge">${onGround ? "GND" : "FLY"}</span>
+            <span class="badge">${badgeText}</span>
           </div>
           <div class="flight-sub">
             ${origin} · ${altFt} · ${spdKts}
@@ -450,6 +589,18 @@
         elFlightList.appendChild(row);
       });
   }
+
+  // ---------------- EVENTI FILTRI ----------------
+  function onFiltersChanged() {
+    // ricostruisci marker e sidebar usando lastStates + nuovi filtri
+    updateAircraftMarkers(lastStates);
+    updateSidebar(lastStates);
+  }
+
+  filterSmallEl.addEventListener("change", onFiltersChanged);
+  filterMediumEl.addEventListener("change", onFiltersChanged);
+  filterLargeEl.addEventListener("change", onFiltersChanged);
+  filterOtherEl.addEventListener("change", onFiltersChanged);
 
   // ---------------- AVVIO APP ----------------
   (async function main() {
