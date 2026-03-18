@@ -2,11 +2,11 @@
 <html lang="it">
 <head>
   <meta charset="utf-8" />
-  <title>Mini FlyRadar Demo</title>
+  <title>Mini FlyRadar Demo - Nord Italia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Leaflet CSS -->
-  
+  <link
+    rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
@@ -21,13 +21,7 @@
       background: #111;
       color: #eee;
     }
-
-    #app {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
+    #app { display: flex; flex-direction: column; height: 100%; }
     header {
       padding: 8px 12px;
       background: #181818;
@@ -37,34 +31,16 @@
       justify-content: space-between;
       font-size: 14px;
     }
+    header .title { font-weight: 600; letter-spacing: 0.03em; }
+    header .status { font-size: 12px; color: #aaa; }
+    #map { flex: 1; width: 100%; position: relative; }
+    .leaflet-container { background: #000; }
 
-    header .title {
-      font-weight: 600;
-      letter-spacing: 0.03em;
-    }
-
-    header .status {
-      font-size: 12px;
-      color: #aaa;
-    }
-
-    #map {
-      flex: 1;
-      width: 100%;
-      position: relative;
-    }
-
-    .leaflet-container {
-      background: #000;
-    }
-
-    /* ICONA AEREO (SVG via DivIcon) */
     .aircraft-icon {
       width: 22px;
       height: 22px;
       transform-origin: 50% 50%;
     }
-
     .aircraft-icon svg {
       width: 100%;
       height: 100%;
@@ -86,7 +62,6 @@
       pointer-events: auto;
       z-index: 1000;
     }
-
     .sidebar-header {
       padding: 8px 10px;
       font-size: 13px;
@@ -96,14 +71,12 @@
       justify-content: space-between;
       align-items: center;
     }
-
     .sidebar-body {
       padding: 6px 8px 0 8px;
       font-size: 12px;
       overflow-y: auto;
       flex: 1;
     }
-
     .sidebar-section-title {
       font-size: 11px;
       text-transform: uppercase;
@@ -111,7 +84,6 @@
       color: #888;
       margin-bottom: 2px;
     }
-
     .filters {
       display: flex;
       flex-wrap: wrap;
@@ -120,7 +92,6 @@
       padding-bottom: 4px;
       border-bottom: 1px solid #222;
     }
-
     .filter-item {
       display: flex;
       align-items: center;
@@ -128,42 +99,21 @@
       font-size: 11px;
       color: #ccc;
     }
-
     .filter-item input[type="checkbox"] {
       accent-color: #ffd500;
       width: 12px;
       height: 12px;
     }
-
-    .flight-list {
-      margin-top: 4px;
-      padding-right: 2px;
-    }
-
+    .flight-list { margin-top: 4px; padding-right: 2px; }
     .flight-row {
       padding: 4px 0;
       border-bottom: 1px solid #222;
       cursor: pointer;
     }
-
-    .flight-row:last-child {
-      border-bottom: none;
-    }
-
-    .flight-row:hover {
-      background: rgba(255,255,255,0.03);
-    }
-
-    .flight-main {
-      font-weight: 600;
-      font-size: 12px;
-    }
-
-    .flight-sub {
-      font-size: 11px;
-      color: #bbb;
-    }
-
+    .flight-row:last-child { border-bottom: none; }
+    .flight-row:hover { background: rgba(255,255,255,0.03); }
+    .flight-main { font-weight: 600; font-size: 12px; }
+    .flight-sub { font-size: 11px; color: #bbb; }
     .badge {
       display: inline-block;
       padding: 1px 5px;
@@ -174,68 +124,48 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-
-    .info-line {
-      font-size: 11px;
-      color: #aaa;
-      margin-top: 2px;
-    }
-
-    a {
-      color: #4ea1ff;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
+    .info-line { font-size: 11px; color: #aaa; margin-top: 2px; }
+    a { color: #4ea1ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
     @media (max-width: 768px) {
-      .sidebar {
-        width: 220px;
-      }
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-      }
+      .sidebar { width: 220px; }
+      header { flex-direction: column; align-items: flex-start; gap: 4px; }
     }
   </style>
-
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="title">Mini FlyRadar Demo</div>
+    <div class="title">Mini FlyRadar Demo - Nord Italia</div>
     <div class="status">
-      <span id="locationStatus">Rilevamento posizione…</span> ·
+      <span id="locationStatus">Area fissa: Nord Italia / Svizzera</span> ·
       <span id="fetchStatus">In attesa dati voli…</span>
     </div>
   </header>
   <div id="map"></div>
 
-  <!-- SIDEBAR: FILTRI + LISTA VOLI -->
   <div class="sidebar">
     <div class="sidebar-header">
-      <span>Traffico aereo locale</span>
+      <span>Traffico area Torino / Nord Italia</span>
       <span id="flightCount">0 aerei</span>
     </div>
     <div class="sidebar-body">
       <div class="sidebar-section-title">Filtri tipo aeromobile (se disponibili)</div>
       <div class="filters">
-        abel class="filter-item">
+        <label class="filter-item">
           <input type="checkbox" id="filterSmall" checked />
           <span>Piccoli / leggeri</span>
         </label>
-        abel class="filter-item">
+        <label class="filter-item">
           <input type="checkbox" id="filterMedium" checked />
           <span>Medi</span>
         </label>
-        abel class="filter-item">
+        <label class="filter-item">
           <input type="checkbox" id="filterLarge" checked />
           <span>Grandi / heavy</span>
         </label>
-        abel class="filter-item">
+        <label class="filter-item">
           <input type="checkbox" id="filterOther" checked />
           <span>Altro / sconosciuto</span>
         </label>
@@ -244,14 +174,13 @@
       <div class="sidebar-section-title">Voli</div>
       <div class="flight-list" id="flightList">
         <div class="info-line">
-          In attesa di localizzare il tuo IP e caricare i voli…
+          Caricamento voli dalla bbox Nord Italia / Svizzera…
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Leaflet JS -->
 <script
   src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -260,16 +189,23 @@
 
 <script>
   const OPENSKY_URL = "https://opensky-network.org/api/states/all";
-  const LOCAL_DELTA_DEG = 5;
   const REFRESH_MS = 10000;
+
+  // BBOX FISSA: Nord Italia / Svizzera / Alto Adriatico
+  // Presa e ampliata dagli esempi ufficiali su CH (lamin=45.8389, lamax=47.8229, lomin=5.9962, lomax=10.5226).
+  // [web:3][web:42][web:44]
+  const BBOX = {
+    lamin: 44.0,
+    lamax: 48.5,
+    lomin: 5.0,
+    lomax: 12.5
+  };
 
   let map;
   let aircraftLayerGroup;
   let aircraftMarkers = new Map();
-  let lastUserPos = null;
   let lastStates = [];
 
-  const elLocationStatus = document.getElementById("locationStatus");
   const elFetchStatus = document.getElementById("fetchStatus");
   const elFlightList = document.getElementById("flightList");
   const elFlightCount = document.getElementById("flightCount");
@@ -283,57 +219,27 @@
     map = L.map("map", {
       worldCopyJump: true,
       zoomControl: true,
-    }).setView([20, 0], 2);
+    }).setView([45.1, 7.7], 6); // centro circa su Torino
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 10,
-      minZoom: 2,
+      maxZoom: 11,
+      minZoom: 4,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
     }).addTo(map);
 
     aircraftLayerGroup = L.layerGroup().addTo(map);
+
+    // Disegno bbox per debug
+    L.rectangle(
+      [
+        [BBOX.lamin, BBOX.lomin],
+        [BBOX.lamax, BBOX.lomax]
+      ],
+      { color: "#4ea1ff", weight: 1, fillOpacity: 0.02 }
+    ).addTo(map);
   }
 
-  async function detectUserLocationByIP() {
-    try {
-      const resp = await fetch("https://ipapi.co/json/");
-      if (!resp.ok) throw new Error("IP API error " + resp.status);
-      const data = await resp.json();
-
-      const lat = data.latitude;
-      const lon = data.longitude;
-      if (typeof lat !== "number" || typeof lon !== "number") {
-        throw new Error("Coordinate non valide dalla IP API");
-      }
-
-      lastUserPos = { lat, lon };
-      elLocationStatus.textContent = `Posizione IP stimata: ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
-      map.setView([lat, lon], 6);
-
-      L.circle([lat, lon], {
-        radius: 400000,
-        color: "#4ea1ff",
-        weight: 1,
-        fillOpacity: 0.02
-      }).addTo(map);
-
-      L.marker([lat, lon], {
-        title: "La tua approssimativa posizione IP"
-      }).addTo(map).bindPopup("Area locale (stima IP)").openPopup();
-
-      return lastUserPos;
-    } catch (err) {
-      console.error(err);
-      elLocationStatus.textContent = "Impossibile rilevare posizione IP (fallback Europa)";
-      lastUserPos = { lat: 50, lon: 10 };
-      map.setView([50, 10], 4);
-      return lastUserPos;
-    }
-  }
-
-  // --- MAPPATURA CATEGORIA (tollerante) ---
   function getCategory(state) {
-    // la risposta OpenSky a volte ha 17 o 18 campi; cat è definito come indice 17, ma può mancare [web:3][web:39]
     if (!Array.isArray(state)) return null;
     if (state.length >= 18) return state[17];
     return null;
@@ -341,7 +247,6 @@
 
   function mapCategoryToGroup(cat) {
     if (typeof cat !== "number") return "other";
-
     if (cat === 2 || cat === 3) return "small";
     if (cat === 4) return "medium";
     if (cat === 5 || cat === 6) return "large";
@@ -357,18 +262,8 @@
     return true;
   }
 
-  async function fetchLocalTraffic() {
-    if (!lastUserPos) return;
-
-    const lat = lastUserPos.lat;
-    const lon = lastUserPos.lon;
-
-    const lamin = lat - LOCAL_DELTA_DEG;
-    const lamax = lat + LOCAL_DELTA_DEG;
-    const lomin = lon - LOCAL_DELTA_DEG;
-    const lomax = lon + LOCAL_DELTA_DEG;
-
-    const url = `${OPENSKY_URL}?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
+  async function fetchTrafficFixedBbox() {
+    const url = `${OPENSKY_URL}?lamin=${BBOX.lamin}&lomin=${BBOX.lomin}&lamax=${BBOX.lamax}&lomax=${BBOX.lomax}`;
 
     try {
       elFetchStatus.textContent = "Caricamento voli in corso…";
@@ -432,7 +327,6 @@
       if (!isGroupVisible(group)) return;
 
       seen.add(icao24);
-
       const pos = [lat, lon];
       const icon = createAircraftIcon(track, group);
 
@@ -446,9 +340,7 @@
         marker._flightData = s;
         marker.addTo(aircraftLayerGroup);
         marker.bindPopup(buildPopupHtml(s));
-        marker.on("click", () => {
-          marker.openPopup();
-        });
+        marker.on("click", () => marker.openPopup());
         aircraftMarkers.set(icao24, marker);
       }
     });
@@ -525,51 +417,49 @@
     if (count === 0) {
       const div = document.createElement("div");
       div.className = "info-line";
-      div.textContent = "Nessun volo visibile (zona poco coperta o limiti API).";
+      div.textContent = "Nessun volo visibile (zona vuota o limiti API).";
       elFlightList.appendChild(div);
       return;
     }
 
-    visibleStates
-      .slice(0, 120)
-      .forEach(s => {
-        const icao24 = s[0];
-        const callsign = (s[1] || "").trim() || "Senza callsign";
-        const origin = s[2] || "N/D";
-        const baroAlt = s[7];
-        const velocity = s[9];
-        const onGround = s[8];
-        const cat = getCategory(s);
+    visibleStates.slice(0, 120).forEach(s => {
+      const icao24 = s[0];
+      const callsign = (s[1] || "").trim() || "Senza callsign";
+      const origin = s[2] || "N/D";
+      const baroAlt = s[7];
+      const velocity = s[9];
+      const onGround = s[8];
+      const cat = getCategory(s);
 
-        const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
-        const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
-        const group = mapCategoryToGroup(cat);
-        let badgeText = "OTHER";
-        if (group === "small")  badgeText = "SMALL";
-        if (group === "medium") badgeText = "MED";
-        if (group === "large")  badgeText = "LARGE";
+      const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
+      const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
+      const group = mapCategoryToGroup(cat);
+      let badgeText = "OTHER";
+      if (group === "small")  badgeText = "SMALL";
+      if (group === "medium") badgeText = "MED";
+      if (group === "large")  badgeText = "LARGE";
 
-        const row = document.createElement("div");
-        row.className = "flight-row";
-        row.innerHTML = `
-          <div class="flight-main">
-            ${callsign}
-            <span class="badge">${onGround ? "GND" : "FLY"}</span>
-            <span class="badge">${badgeText}</span>
-          </div>
-          <div class="flight-sub">
-            ${origin} · ${altFt} · ${spdKts}
-          </div>
-        `;
-        row.onclick = () => {
-          const marker = aircraftMarkers.get(icao24);
-          if (marker) {
-            map.setView(marker.getLatLng(), Math.max(map.getZoom(), 7), { animate: true });
-            marker.openPopup();
-          }
-        };
-        elFlightList.appendChild(row);
-      });
+      const row = document.createElement("div");
+      row.className = "flight-row";
+      row.innerHTML = `
+        <div class="flight-main">
+          ${callsign}
+          <span class="badge">${onGround ? "GND" : "FLY"}</span>
+          <span class="badge">${badgeText}</span>
+        </div>
+        <div class="flight-sub">
+          ${origin} · ${altFt} · ${spdKts}
+        </div>
+      `;
+      row.onclick = () => {
+        const marker = aircraftMarkers.get(icao24);
+        if (marker) {
+          map.setView(marker.getLatLng(), Math.max(map.getZoom(), 7), { animate: true });
+          marker.openPopup();
+        }
+      };
+      elFlightList.appendChild(row);
+    });
   }
 
   function onFiltersChanged() {
@@ -584,11 +474,9 @@
 
   (async function main() {
     initMap();
-    await detectUserLocationByIP();
-    await fetchLocalTraffic();
-    setInterval(fetchLocalTraffic, REFRESH_MS);
+    await fetchTrafficFixedBbox();
+    setInterval(fetchTrafficFixedBbox, REFRESH_MS);
   })();
 </script>
-
 </body>
 </html>
