@@ -42,10 +42,139 @@ body {
   z-index: 1;
 }
 
+/* ── PANNELLO DETTAGLIO AEREO (laterale sinistro) ── */
+#detail-panel {
+  position: fixed;
+  top: 54px;
+  left: 10px;
+  width: 280px;
+  background: rgba(13,13,13,0.97);
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  z-index: 1500;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: calc(100vh - 64px);
+}
+#detail-panel.visible { display: flex; }
+
+#detail-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #888;
+  z-index: 10;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s;
+}
+#detail-close:hover { color: #fff; }
+
+#detail-img-wrap {
+  width: 100%;
+  height: 160px;
+  background: #0a0a0a;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+#detail-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+#detail-img-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #444;
+  font-size: 11px;
+  gap: 6px;
+}
+#detail-img-placeholder .plane-emoji { font-size: 36px; }
+
+#detail-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+#detail-callsign {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+#detail-icao {
+  font-size: 10px;
+  color: #555;
+  margin-bottom: 8px;
+}
+#detail-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.dtag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+.dtag-fly { background: rgba(0,200,80,0.15); color: #00c850; }
+.dtag-gnd { background: rgba(255,80,80,0.15); color: #ff5050; }
+.dtag-mil { background: rgba(76,175,80,0.2);  color: #4caf50; }
+.dtag-civ { background: rgba(100,160,255,0.15); color: #64a0ff; }
+
+#detail-desc {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.6;
+  margin-bottom: 10px;
+  font-style: italic;
+  border-left: 2px solid #2a2a2a;
+  padding-left: 8px;
+}
+
+#detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+#detail-table tr td:first-child {
+  color: #555;
+  padding: 3px 10px 3px 0;
+  width: 80px;
+}
+#detail-table tr td:last-child {
+  color: #ddd;
+  font-weight: 600;
+}
+#detail-table tr { border-bottom: 1px solid #1a1a1a; }
+#detail-table tr:last-child { border-bottom: none; }
+
+#detail-photo-credit {
+  font-size: 9px;
+  color: #3a3a3a;
+  margin-top: 10px;
+  text-align: right;
+}
+
+/* ── SIDEBAR DESTRA ── */
 #sidebar {
   position: fixed;
   top: 54px; right: 10px;
-  width: 265px;
+  width: 255px;
   max-height: calc(100vh - 64px);
   background: rgba(13,13,13,0.97);
   border: 1px solid #2a2a2a;
@@ -55,7 +184,6 @@ body {
   overflow: hidden;
   z-index: 1500;
 }
-
 #sidebar-header {
   padding: 9px 12px;
   background: #161616;
@@ -76,7 +204,6 @@ body {
   border-radius: 99px;
 }
 
-/* FILTRI */
 #filters {
   padding: 8px 10px;
   border-bottom: 1px solid #222;
@@ -87,71 +214,46 @@ body {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #666;
+  color: #555;
   margin-bottom: 6px;
 }
-.filter-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
+.filter-grid { display: flex; flex-wrap: wrap; gap: 5px; }
 .filter-btn {
   font-size: 10px;
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 99px;
-  border: 1px solid #333;
+  border: 1px solid #2a2a2a;
   background: #1a1a1a;
-  color: #bbb;
+  color: #666;
   cursor: pointer;
   transition: all 0.15s;
   user-select: none;
 }
-.filter-btn.active {
-  background: #ffd500;
-  color: #000;
-  border-color: #ffd500;
-}
-.filter-btn.active-mil {
-  background: #4caf50;
-  color: #000;
-  border-color: #4caf50;
-}
-.filter-btn.active-gnd {
-  background: #ff5555;
-  color: #fff;
-  border-color: #ff5555;
-}
+.filter-btn.active     { background: #ffd500; color: #000; border-color: #ffd500; }
+.filter-btn.active-mil { background: #4caf50; color: #000; border-color: #4caf50; }
+.filter-btn.active-gnd { background: #ff5555; color: #fff; border-color: #ff5555; }
 
 #sidebar-list {
   overflow-y: auto;
   flex: 1;
   padding: 4px 8px;
 }
-
 .f-row {
   padding: 5px 3px;
-  border-bottom: 1px solid #1e1e1e;
+  border-bottom: 1px solid #1a1a1a;
   cursor: pointer;
   border-radius: 4px;
 }
 .f-row:hover { background: rgba(255,255,255,0.04); }
 .f-row:last-child { border-bottom: none; }
 .f-name { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
-.f-sub { font-size: 10px; color: #666; margin-top: 1px; }
-
-.bdg {
-  font-size: 9px;
-  padding: 1px 5px;
-  border-radius: 99px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
+.f-sub  { font-size: 10px; color: #555; margin-top: 1px; }
+.bdg { font-size: 9px; padding: 1px 5px; border-radius: 99px; font-weight: 700; text-transform: uppercase; }
 .bdg-fly { background: rgba(0,200,80,0.15); color: #00c850; }
 .bdg-gnd { background: rgba(255,80,80,0.15); color: #ff5050; }
-.bdg-mil { background: rgba(76,175,80,0.2); color: #4caf50; }
-
-.no-data { font-size: 11px; color: #555; padding: 10px 4px; }
+.bdg-mil { background: rgba(76,175,80,0.2);  color: #4caf50; }
+.no-data { font-size: 11px; color: #444; padding: 10px 4px; }
 
 /* CLUSTER */
 .marker-cluster-small  { background: rgba(255,213,0,0.4); }
@@ -161,22 +263,22 @@ body {
 .marker-cluster-large  { background: rgba(255,100,0,0.4); }
 .marker-cluster-large div  { background: rgba(255,100,0,0.9); color:#000; font-weight:700; }
 
-/* POPUP */
+/* POPUP minimale (info base + rimanda al pannello) */
 .leaflet-popup-content-wrapper {
   background: #1c1c1c !important;
   color: #eee !important;
-  border: 1px solid #333 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.8) !important;
-  padding: 0 !important;
+  border: 1px solid #2a2a2a !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8) !important;
 }
 .leaflet-popup-content { margin: 0 !important; }
 .leaflet-popup-tip { background: #1c1c1c !important; }
-.leaflet-popup-close-button { color: #888 !important; top: 8px !important; right: 8px !important; }
+.leaflet-popup-close-button { color: #888 !important; }
 </style>
 </head>
 
 <body>
+
 <div id="header">
   <span class="title">✈ FlyRadar — Nord Italia / Torino</span>
   <span class="status" id="status">Avvio…</span>
@@ -184,24 +286,48 @@ body {
 
 <div id="map"></div>
 
+<!-- PANNELLO DETTAGLIO SINISTRA -->
+<div id="detail-panel">
+  <div id="detail-close" onclick="closeDetail()">✕</div>
+  <div id="detail-img-wrap">
+    <div id="detail-img-placeholder">
+      <span class="plane-emoji">✈</span>
+      <span>Caricamento foto…</span>
+    </div>
+  </div>
+  <div id="detail-body">
+    <div id="detail-callsign">—</div>
+    <div id="detail-icao">—</div>
+    <div id="detail-tags"></div>
+    <div id="detail-desc"></div>
+    <table id="detail-table">
+      <tr><td>Paese</td><td id="d-country">—</td></tr>
+      <tr><td>Quota</td><td id="d-alt">—</td></tr>
+      <tr><td>Velocità</td><td id="d-spd">—</td></tr>
+      <tr><td>Prua</td><td id="d-hdg">—</td></tr>
+      <tr><td>Posizione</td><td id="d-pos">—</td></tr>
+      <tr><td>Stato</td><td id="d-gnd">—</td></tr>
+    </table>
+    <div id="detail-photo-credit">Foto: Planespotters.net · Dati: OpenSky Network</div>
+  </div>
+</div>
+
+<!-- SIDEBAR DESTRA -->
 <div id="sidebar">
   <div id="sidebar-header">
     <span>Voli area locale</span>
     <span id="sidebar-count">0</span>
   </div>
-
-  <!-- FILTRI -->
   <div id="filters">
     <div class="filter-title">Filtri visualizzazione</div>
     <div class="filter-grid">
-      <div class="filter-btn active" data-filter="civil"   onclick="toggleFilter(this)">✈ Civili</div>
+      <div class="filter-btn active"     data-filter="civil"  onclick="toggleFilter(this)">✈ Civili</div>
       <div class="filter-btn active active-mil" data-filter="mil" onclick="toggleFilter(this)">🪖 Militari</div>
-      <div class="filter-btn active" data-filter="fly"    onclick="toggleFilter(this)">🟢 In volo</div>
-      <div class="filter-btn active-gnd" data-filter="gnd" onclick="toggleFilter(this)">🔴 A terra</div>
-      <div class="filter-btn" data-filter="heavy"         onclick="toggleFilter(this)">🛫 Solo grandi</div>
+      <div class="filter-btn active"     data-filter="fly"    onclick="toggleFilter(this)">🟢 In volo</div>
+      <div class="filter-btn active-gnd" data-filter="gnd"    onclick="toggleFilter(this)">🔴 A terra</div>
+      <div class="filter-btn"            data-filter="heavy"  onclick="toggleFilter(this)">🛫 Solo grandi</div>
     </div>
   </div>
-
   <div id="sidebar-list">
     <div class="no-data">Caricamento…</div>
   </div>
@@ -216,48 +342,66 @@ const OPENSKY  = "https://opensky-network.org/api/states/all";
 const BBOX     = { lamin:43.5, lamax:48.5, lomin:5.0, lomax:13.5 };
 const INTERVAL = 20000;
 
-// Range ICAO24 militari noti (prefissi esadecimali per paese)
-// Fonti: adsbexchange, comunità ADS-B [web:64][web:66]
+// Range ICAO24 militari (prefissi noti)
 const MIL_PREFIXES = [
-  "ae","a1","a2","a3","a4","a5",  // US military (AE****)
-  "43c","43d","43e","43f",         // Germania militare
-  "3b7","3b8","3b9","3ba","3bb",   // Francia militare
-  "43b","43a",                     // Germania
-  "0100","0101","0102","0103",     // NATO
-  "4240","4241","4242","4243","4244","4245", // UK RAF
-  "300","301","302",               // Italia militare (AMI)
-  "500","501",                     // Russia militare
+  "ae","a1","a2","a3","a4","a5",
+  "43c","43d","43e","43f",
+  "3b7","3b8","3b9","3ba","3bb",
+  "43b","43a",
+  "0100","0101","0102","0103",
+  "4240","4241","4242","4243","4244","4245",
+  "300","301","302",
+  "500","501",
 ];
-
-// Callsign prefix militari comuni
 const MIL_CALLSIGNS = [
   "RCH","DUKE","REACH","JAKE","FURY","VIPER","GHOST","EAGLE",
   "VENUS","MARS","ATLAS","MAGMA","TOPGUN","KNIFE","IRON","STEEL",
   "AMI","IAM","IFC","ITA","GAF","RAF","USAF","NAVY"
 ];
 
-// ─── STATO FILTRI ────────────────────────────────────────
-const filters = {
-  civil: true,
-  mil:   true,
-  fly:   true,
-  gnd:   false,
-  heavy: false
+// Descrizioni per tipo di aereo (basate su callsign prefix)
+const AIRLINE_DESC = {
+  "RYR": "Ryanair — compagnia low-cost irlandese, una delle più grandi d'Europa.",
+  "EZY": "easyJet — compagnia low-cost britannica, molto attiva in Italia.",
+  "AZA": "ITA Airways — compagnia di bandiera italiana.",
+  "BAW": "British Airways — compagnia di bandiera del Regno Unito.",
+  "DLH": "Lufthansa — compagnia di bandiera tedesca, tra le maggiori in Europa.",
+  "AFR": "Air France — compagnia di bandiera francese.",
+  "UAE": "Emirates — compagnia di bandiera degli Emirati Arabi Uniti.",
+  "SWR": "Swiss International Air Lines — compagnia svizzera.",
+  "VOL": "Volotea — compagnia low-cost spagnola, opera molte rotte italiane.",
+  "WZZ": "Wizz Air — compagnia low-cost ungherese.",
+  "TVS": "Transavia — compagnia low-cost olandese/francese.",
+  "VLG": "Vueling — compagnia low-cost spagnola del gruppo IAG.",
+  "AMI": "Aeronautica Militare Italiana — aereo militare dell'AMI.",
+  "RCH": "US Air Force — volo militare dell'aeronautica americana.",
+  "GAF": "German Air Force — aereo militare tedesco.",
+  "RAF": "Royal Air Force — aereo militare britannico.",
 };
+
+function getDescription(callsign, mil) {
+  if (!callsign) return null;
+  const cs = callsign.trim().toUpperCase();
+  for (const [pfx, desc] of Object.entries(AIRLINE_DESC)) {
+    if (cs.startsWith(pfx)) return desc;
+  }
+  if (mil) return "Aeromobile militare — identificato tramite codice ICAO24 o callsign.";
+  return "Aeromobile civile in transito nell'area di sorveglianza.";
+}
+
+// ─── STATO FILTRI ────────────────────────────────────────
+const filters = { civil:true, mil:true, fly:true, gnd:false, heavy:false };
 
 function toggleFilter(btn) {
   const key = btn.dataset.filter;
   filters[key] = !filters[key];
-
-  // stile attivo dipende dal tipo
   if (filters[key]) {
-    if (key === "mil")   btn.className = "filter-btn active active-mil";
-    else if (key === "gnd") btn.className = "filter-btn active active-gnd";
-    else                 btn.className = "filter-btn active";
+    if (key==="mil")  btn.className = "filter-btn active active-mil";
+    else if (key==="gnd") btn.className = "filter-btn active active-gnd";
+    else              btn.className = "filter-btn active";
   } else {
     btn.className = "filter-btn";
   }
-
   renderMarkers(lastStates);
   renderSidebar(lastStates);
 }
@@ -265,18 +409,14 @@ function toggleFilter(btn) {
 // ─── STATO APP ────────────────────────────────────────────
 let map, clusterGroup, trailLayer;
 let lastStates = [];
-let selectedIcao = null;
 
 // ─── MAPPA ────────────────────────────────────────────────
 function initMap() {
   map = L.map("map", { center:[45.07,7.68], zoom:7, zoomControl:true });
-
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap",
-    maxZoom:13, minZoom:3
+    attribution:"&copy; OpenStreetMap", maxZoom:13, minZoom:3
   }).addTo(map);
 
-  // layer per la traiettoria
   trailLayer = L.layerGroup().addTo(map);
 
   clusterGroup = L.markerClusterGroup({
@@ -284,70 +424,166 @@ function initMap() {
     disableClusteringAtZoom: 9,
     spiderfyOnMaxZoom: true,
     zoomToBoundsOnClick: true,
-    polygonOptions: { color:"#ffd500", weight:1, fillOpacity:0.04 }
+    polygonOptions:{ color:"#ffd500", weight:1, fillOpacity:0.04 }
   });
   map.addLayer(clusterGroup);
 
-  // click su mappa = deseleziona e rimuove trail
-  map.on("click", () => {
-    trailLayer.clearLayers();
-    selectedIcao = null;
-  });
-
+  map.on("click", () => { trailLayer.clearLayers(); closeDetail(); });
   setTimeout(() => map.invalidateSize(), 200);
   window.addEventListener("resize", () => map.invalidateSize());
 }
 
-// ─── UTILITY: DETECT MILITARE ────────────────────────────
+// ─── UTILITY ─────────────────────────────────────────────
 function isMilitary(s) {
-  const icao = (s[0] || "").toLowerCase();
-  const cs   = (s[1] || "").trim().toUpperCase();
-
-  // check prefisso ICAO24
-  for (const pref of MIL_PREFIXES) {
-    if (icao.startsWith(pref)) return true;
-  }
-  // check callsign
-  for (const pfx of MIL_CALLSIGNS) {
-    if (cs.startsWith(pfx)) return true;
-  }
+  const icao = (s[0]||"").toLowerCase();
+  const cs   = (s[1]||"").trim().toUpperCase();
+  for (const p of MIL_PREFIXES)  if (icao.startsWith(p)) return true;
+  for (const p of MIL_CALLSIGNS) if (cs.startsWith(p))   return true;
   return false;
 }
 
-// category 5/6 = heavy/high vortex (grandi aerei) [web:3]
 function isHeavy(s) {
   const cat = s.length >= 18 ? s[17] : null;
   if (typeof cat === "number") return cat === 5 || cat === 6;
-  // fallback: quota alta + velocità alta → probabile wide-body
-  const alt = s[7];
-  const spd = s[9];
-  return typeof alt === "number" && typeof spd === "number"
-         && alt > 9000 && spd > 220;
+  const alt = s[7], spd = s[9];
+  return typeof alt==="number" && typeof spd==="number" && alt>9000 && spd>220;
 }
 
-// ─── FILTRO STATO ────────────────────────────────────────
 function passFilter(s) {
   const mil = isMilitary(s);
   const gnd = s[8];
-
-  if (!filters.civil  && !mil) return false;
-  if (!filters.mil    && mil)  return false;
-  if (!filters.fly    && !gnd) return false;
-  if (!filters.gnd    && gnd)  return false;
-  if (filters.heavy   && !isHeavy(s)) return false;
-
+  if (!filters.civil && !mil)  return false;
+  if (!filters.mil   && mil)   return false;
+  if (!filters.fly   && !gnd)  return false;
+  if (!filters.gnd   && gnd)   return false;
+  if (filters.heavy  && !isHeavy(s)) return false;
   return true;
 }
 
-// ─── ICONA AEREO SVG ─────────────────────────────────────
+// m/s → km/h
+function toKmh(ms) {
+  return typeof ms === "number" ? (ms * 3.6).toFixed(0) + " km/h" : "—";
+}
+// m → ft
+function toFt(m) {
+  return typeof m === "number" ? (m * 3.28084).toFixed(0) + " ft" : "—";
+}
+
+// ─── TRAIETTORIA ─────────────────────────────────────────
+function drawTrail(s) {
+  trailLayer.clearLayers();
+  const lat=s[6], lon=s[5];
+  const track = typeof s[10]==="number" ? s[10] : 0;
+  const spd   = typeof s[9] ==="number" ? s[9]  : 200;
+  if (typeof lat!=="number" || typeof lon!=="number") return;
+
+  const toRad = d => d*Math.PI/180;
+  const toDeg = r => r*180/Math.PI;
+  const R = 6371000;
+  const steps = [5, 10, 20];
+  const points = [[lat, lon]];
+
+  steps.forEach(min => {
+    const dist = spd * min * 60;
+    const br = toRad(track), laR = toRad(lat), loR = toRad(lon);
+    const d  = dist / R;
+    const la2 = Math.asin(Math.sin(laR)*Math.cos(d) + Math.cos(laR)*Math.sin(d)*Math.cos(br));
+    const lo2 = loR + Math.atan2(Math.sin(br)*Math.sin(d)*Math.cos(laR), Math.cos(d)-Math.sin(laR)*Math.sin(la2));
+    points.push([toDeg(la2), toDeg(lo2)]);
+  });
+
+  L.polyline(points, { color:"#ffd500", weight:2, opacity:0.85, dashArray:"8 6" }).addTo(trailLayer);
+  L.circleMarker(points[points.length-1], { radius:4, color:"#ffd500", fillColor:"#ffd500", fillOpacity:0.9, weight:1 }).addTo(trailLayer);
+
+  points.slice(1).forEach((pt, i) => {
+    L.marker(pt, {
+      icon: L.divIcon({
+        className:"",
+        html:`<div style="font-size:10px;font-weight:700;color:#ffd500;text-shadow:0 0 4px #000;white-space:nowrap;margin-left:6px;">+${steps[i]}min</div>`,
+        iconAnchor:[0,8]
+      })
+    }).addTo(trailLayer);
+  });
+}
+
+// ─── PANNELLO DETTAGLIO ───────────────────────────────────
+function openDetail(s) {
+  const panel  = document.getElementById("detail-panel");
+  const mil    = isMilitary(s);
+  const gnd    = s[8];
+  const cs     = (s[1]||"").trim() || "Senza callsign";
+  const icao24 = (s[0]||"").toUpperCase();
+  const desc   = getDescription(cs, mil);
+
+  // Dati base
+  document.getElementById("detail-callsign").textContent = cs;
+  document.getElementById("detail-icao").textContent     = "ICAO24: " + icao24;
+  document.getElementById("d-country").textContent = s[2] || "—";
+  document.getElementById("d-alt").textContent     = toFt(s[7]);
+  document.getElementById("d-spd").textContent     = toKmh(s[9]);
+  document.getElementById("d-hdg").textContent     = typeof s[10]==="number" ? s[10].toFixed(0)+"°" : "—";
+  document.getElementById("d-pos").textContent     = (typeof s[6]==="number" && typeof s[5]==="number")
+                                                     ? s[6].toFixed(3)+", "+s[5].toFixed(3) : "—";
+  document.getElementById("d-gnd").textContent     = gnd ? "🔴 A terra" : "🟢 In volo";
+
+  // Tag
+  const tagsEl = document.getElementById("detail-tags");
+  tagsEl.innerHTML = `
+    <span class="dtag ${gnd?"dtag-gnd":"dtag-fly"}">${gnd?"A terra":"In volo"}</span>
+    <span class="dtag ${mil?"dtag-mil":"dtag-civ"}">${mil?"Militare":"Civile"}</span>
+  `;
+
+  // Descrizione
+  const descEl = document.getElementById("detail-desc");
+  descEl.textContent = desc || "";
+  descEl.style.display = desc ? "block" : "none";
+
+  // Immagine da Planespotters.net
+  const imgWrap = document.getElementById("detail-img-wrap");
+  imgWrap.innerHTML = `
+    <div id="detail-img-placeholder">
+      <span class="plane-emoji">✈</span>
+      <span>Caricamento foto…</span>
+    </div>`;
+
+  fetch(`https://api.planespotters.net/pub/photos/hex/${(s[0]||"").toLowerCase()}`)
+    .then(r => r.json())
+    .then(data => {
+      const photos = data.photos;
+      if (photos && photos.length > 0) {
+        const src = photos[0].thumbnail_large?.src || photos[0].thumbnail?.src;
+        const photographer = photos[0].photographer || "";
+        if (src) {
+          imgWrap.innerHTML = `
+            <img src="${src}" alt="${cs}"
+              style="width:100%;height:100%;object-fit:cover;display:block;"
+              onerror="this.parentElement.innerHTML='<div class=detail-img-placeholder><span class=plane-emoji>✈</span><span>Nessuna foto disponibile</span></div>'" />
+            ${photographer ? `<div style="position:absolute;bottom:4px;right:6px;font-size:9px;color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:1px 5px;border-radius:4px;">📷 ${photographer}</div>` : ""}
+          `;
+        }
+      } else {
+        imgWrap.innerHTML = `<div id="detail-img-placeholder"><span class="plane-emoji">✈</span><span>Nessuna foto disponibile</span></div>`;
+      }
+    })
+    .catch(() => {
+      imgWrap.innerHTML = `<div id="detail-img-placeholder"><span class="plane-emoji">✈</span><span>Foto non disponibile</span></div>`;
+    });
+
+  panel.classList.add("visible");
+}
+
+function closeDetail() {
+  document.getElementById("detail-panel").classList.remove("visible");
+}
+
+// ─── ICONA AEREO ─────────────────────────────────────────
 function planeIcon(track, mil) {
-  const rot   = typeof track === "number" ? track : 0;
+  const rot   = typeof track==="number" ? track : 0;
   const color = mil ? "#4caf50" : "#ffd500";
   return L.divIcon({
-    className: "",
-    iconSize:   [22,22],
-    iconAnchor: [11,11],
-    html: `<div style="width:22px;height:22px;transform:rotate(${rot}deg);transform-origin:center;">
+    className:"",
+    iconSize:[22,22], iconAnchor:[11,11],
+    html:`<div style="width:22px;height:22px;transform:rotate(${rot}deg);transform-origin:center;">
       <svg viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
         <path fill="${color}" stroke="#000" stroke-width="0.5"
           d="M12 2c-.4 0-.77.24-.92.62L9.2 8.5 4 10.5v1l4.5-.5L11 15l-2.5 2-2 .5v1l3-.3L12 17l2.5 1.2 3 .3v-1l-2-.5L13 15l2.5-4.5L20 11.5v-1L14.8 8.5 12.92 2.62A1 1 0 0 0 12 2z"/>
@@ -356,160 +592,24 @@ function planeIcon(track, mil) {
   });
 }
 
-// ─── TRAIETTORIA (stima dalla prua) ──────────────────────
-function drawTrail(s) {
-  trailLayer.clearLayers();
-  const lat   = s[6], lon = s[5];
-  const track = typeof s[10] === "number" ? s[10] : 0;
-  const spd   = typeof s[9]  === "number" ? s[9]  : 200; // m/s
-  if (typeof lat !== "number" || typeof lon !== "number") return;
-
-  // Stima posizione nei prossimi 5/10/20 minuti
-  const steps = [5, 10, 20];
-  const toRad = d => d * Math.PI / 180;
-  const toDeg = r => r * 180 / Math.PI;
-  const R = 6371000;
-
-  const points = [[lat, lon]];
-
-  steps.forEach(min => {
-    const dist = spd * min * 60; // metri
-    const bearRad = toRad(track);
-    const latRad  = toRad(lat);
-    const lonRad  = toRad(lon);
-    const d = dist / R;
-
-    const lat2 = Math.asin(
-      Math.sin(latRad) * Math.cos(d) +
-      Math.cos(latRad) * Math.sin(d) * Math.cos(bearRad)
-    );
-    const lon2 = lonRad + Math.atan2(
-      Math.sin(bearRad) * Math.sin(d) * Math.cos(latRad),
-      Math.cos(d) - Math.sin(latRad) * Math.sin(lat2)
-    );
-    points.push([toDeg(lat2), toDeg(lon2)]);
-  });
-
-  // Linea tratteggiata
-  L.polyline(points, {
-    color: "#ffd500",
-    weight: 2,
-    opacity: 0.85,
-    dashArray: "8 6"
-  }).addTo(trailLayer);
-
-  // Freccia finale
-  const last = points[points.length - 1];
-  L.circleMarker(last, {
-    radius: 4,
-    color: "#ffd500",
-    fillColor: "#ffd500",
-    fillOpacity: 0.9,
-    weight: 1
-  }).addTo(trailLayer);
-
-  // Mini etichette tempo
-  points.slice(1).forEach((pt, i) => {
-    L.marker(pt, {
-      icon: L.divIcon({
-        className: "",
-        html: `<div style="
-          font-size:10px;font-weight:700;
-          color:#ffd500;
-          text-shadow:0 0 4px #000,0 0 4px #000;
-          white-space:nowrap;
-          margin-left:6px;">
-          +${steps[i]}min
-        </div>`,
-        iconAnchor: [0, 8]
-      })
-    }).addTo(trailLayer);
-  });
-}
-
-// ─── POPUP CON IMMAGINE ──────────────────────────────────
-function buildPopup(s, mil) {
-  const icao24 = (s[0] || "").toUpperCase();
-  const cs     = (s[1] || "").trim() || "Senza callsign";
-  const ctr    = s[2]  || "—";
-  const alt    = typeof s[7]==="number" ? (s[7]*3.28084).toFixed(0)+" ft" : "—";
-  const spd    = typeof s[9]==="number" ? (s[9]*1.94384).toFixed(0)+" kt" : "—";
-  const hdg    = typeof s[10]==="number"? s[10].toFixed(0)+"°" : "—";
-  const gnd    = s[8] ? "🔴 A terra" : "🟢 In volo";
-  const milTag = mil ? `<span class="bdg bdg-mil" style="font-size:10px;padding:2px 6px;">🪖 Militare</span>` : "";
-
-  // Planespotters.net API: foto aerei gratuita per icao24 [web:64]
-  const imgUrl = `https://api.planespotters.net/pub/photos/hex/${(s[0]||"").toLowerCase()}`;
-
-  const id = "popup-img-" + (s[0] || "").toLowerCase();
-
-  // carica immagine async
-  setTimeout(() => {
-    fetch(imgUrl)
-      .then(r => r.json())
-      .then(data => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const photos = data.photos;
-        if (photos && photos.length > 0) {
-          const thumb = photos[0].thumbnail_large?.src || photos[0].thumbnail?.src;
-          if (thumb) {
-            el.innerHTML = `<img src="${thumb}"
-              style="width:100%;border-radius:6px;margin-bottom:8px;display:block;"
-              onerror="this.parentElement.style.display='none'" />`;
-          } else {
-            el.style.display = "none";
-          }
-        } else {
-          el.style.display = "none";
-        }
-      })
-      .catch(() => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = "none";
-      });
-  }, 100);
-
-  return `<div style="font-family:system-ui,sans-serif;padding:12px 14px;min-width:200px;max-width:230px;">
-    <div id="${id}" style="min-height:20px;margin-bottom:4px;">
-      <div style="font-size:10px;color:#555;padding:4px 0;">Caricamento foto…</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-      <div style="font-size:15px;font-weight:700;">${cs}</div>
-      ${milTag}
-    </div>
-    <div style="font-size:10px;color:#666;margin-bottom:8px;">ICAO24: ${icao24}</div>
-    <table style="font-size:11px;width:100%;border-collapse:collapse;">
-      <tr><td style="color:#666;padding:2px 10px 2px 0;">Paese</td><td style="color:#ddd">${ctr}</td></tr>
-      <tr><td style="color:#666;padding:2px 10px 2px 0;">Quota</td><td style="color:#ddd">${alt}</td></tr>
-      <tr><td style="color:#666;padding:2px 10px 2px 0;">Velocità</td><td style="color:#ddd">${spd}</td></tr>
-      <tr><td style="color:#666;padding:2px 10px 2px 0;">Prua</td><td style="color:#ddd">${hdg}</td></tr>
-      <tr><td style="color:#666;padding:2px 10px 2px 0;">Stato</td><td>${gnd}</td></tr>
-    </table>
-    <div style="font-size:9px;color:#444;margin-top:10px;">Dati: OpenSky Network · Foto: Planespotters.net</div>
-  </div>`;
-}
-
 // ─── RENDER MARKER ────────────────────────────────────────
 function renderMarkers(states) {
   clusterGroup.clearLayers();
   trailLayer.clearLayers();
-  selectedIcao = null;
 
   const batch = [];
   states.forEach(s => {
     if (!s || s.length < 7) return;
-    const lat = s[6], lon = s[5];
-    if (typeof lat !== "number" || typeof lon !== "number") return;
+    const lat=s[6], lon=s[5];
+    if (typeof lat!=="number" || typeof lon!=="number") return;
     if (!passFilter(s)) return;
 
     const mil = isMilitary(s);
-    const m = L.marker([lat, lon], { icon: planeIcon(s[10], mil) });
-    m.bindPopup(buildPopup(s, mil), { maxWidth:240 });
+    const m   = L.marker([lat,lon], { icon: planeIcon(s[10], mil) });
 
     m.on("click", () => {
-      selectedIcao = s[0];
       drawTrail(s);
+      openDetail(s);
     });
 
     batch.push(m);
@@ -521,9 +621,9 @@ function renderMarkers(states) {
 // ─── RENDER SIDEBAR ───────────────────────────────────────
 function renderSidebar(states) {
   const valid = states.filter(s =>
-    s && s.length >= 7 &&
-    typeof s[6] === "number" &&
-    typeof s[5] === "number" &&
+    s && s.length>=7 &&
+    typeof s[6]==="number" &&
+    typeof s[5]==="number" &&
     passFilter(s)
   );
 
@@ -532,15 +632,13 @@ function renderSidebar(states) {
   el.innerHTML = "";
 
   if (valid.length === 0) {
-    el.innerHTML = `<div class="no-data">Nessun volo con questi filtri.<br>O rate limit API raggiunto.</div>`;
+    el.innerHTML = `<div class="no-data">Nessun volo con questi filtri.</div>`;
     return;
   }
 
   valid.slice(0, 150).forEach(s => {
     const cs  = (s[1]||"").trim() || "Senza callsign";
     const ctr = s[2] || "—";
-    const alt = typeof s[7]==="number" ? (s[7]*3.28084).toFixed(0)+" ft" : "—";
-    const spd = typeof s[9]==="number" ? (s[9]*1.94384).toFixed(0)+" kt" : "—";
     const gnd = s[8];
     const mil = isMilitary(s);
 
@@ -552,13 +650,13 @@ function renderSidebar(states) {
         <span class="bdg ${gnd?"bdg-gnd":"bdg-fly"}">${gnd?"GND":"FLY"}</span>
         ${mil?`<span class="bdg bdg-mil">MIL</span>`:""}
       </div>
-      <div class="f-sub">${ctr} · ${alt} · ${spd}</div>
+      <div class="f-sub">${ctr} · ${toFt(s[7])} · ${toKmh(s[9])}</div>
     `;
     row.onclick = () => {
       if (typeof s[6]==="number" && typeof s[5]==="number") {
-        map.setView([s[6], s[5]], 10, { animate:true });
+        map.setView([s[6],s[5]], 10, { animate:true });
         drawTrail(s);
-        selectedIcao = s[0];
+        openDetail(s);
       }
     };
     el.appendChild(row);
@@ -572,18 +670,16 @@ async function fetchFlights() {
   try {
     el.textContent = "Caricamento…";
     const res = await fetch(url);
-    if (res.status === 429) {
-      el.textContent = "⚠ Rate limit API. Riprovo tra 20s…"; return;
-    }
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data  = await res.json();
-    lastStates  = Array.isArray(data.states) ? data.states : [];
+    if (res.status===429) { el.textContent="⚠ Rate limit. Riprovo tra 20s…"; return; }
+    if (!res.ok) throw new Error("HTTP "+res.status);
+    const data = await res.json();
+    lastStates = Array.isArray(data.states) ? data.states : [];
     renderMarkers(lastStates);
     renderSidebar(lastStates);
     el.textContent = `✓ ${lastStates.length} voli · ${new Date().toLocaleTimeString()}`;
   } catch(e) {
     console.error(e);
-    el.textContent = "✗ Errore: " + e.message;
+    el.textContent = "✗ Errore: "+e.message;
   }
 }
 
