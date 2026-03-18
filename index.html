@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Mini FlyRadar Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #111;
+      color: #eee;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    header {
+      padding: 8px 12px;
+      background: #181818;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    header .title {
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    header .status {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    #map {
+      flex: 1;
+      width: 100%;
+    }
+
+    .leaflet-container {
+      background: #000;
+    }
+
+    .aircraft-marker {
+      width: 18px;
+      height: 18px;
+      background: rgba(255, 213, 0, 0.95);
+      border-radius: 50% 50% 0 0;
+      border: 1px solid #333;
+      transform-origin: 50% 70%;
+      box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    }
+
+    .sidebar {
+      position: absolute;
+      top: 56px;
+      right: 8px;
+      width: 260px;
+      max-height: calc(100% - 64px);
+      background: rgba(15,15,15,0.95);
+      border-radius: 8px;
+      border: 1px solid #333;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-body {
+      padding: 6px 8px;
+      font-size: 12px;
+      overflow-y: auto;
+    }
+
+    .flight-row {
+      padding: 4px 0;
+      border-bottom: 1px solid #222;
+      cursor: pointer;
+    }
+
+    .flight-row:last-child {
+      border-bottom: none;
+    }
+
+    .flight-row:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .flight-main {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .flight-sub {
+      font-size: 11px;
+      color: #bbb;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 999px;
+      background: #333;
+      margin-left: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .info-line {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 2px;
+    }
+
+    a {
+      color: #4ea1ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 200px;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+    }
+  </style>
+
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title">Mini FlyRadar Demo</div>
+    <div class="status">
+      <span id="locationStatus">Rilevamento posizione…</span> ·
+      <span id="fetchStatus">In attesa dati voli…</span>
+    </div>
+  </header>
+  <div id="map"></div>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span>Traffico aereo locale</span>
+      <span id="flightCount">0 aerei</span>
+    </div>
+    <div class="sidebar-body" id="flightList">
+      <div class="info-line">
+        In attesa di localizzare il tuo IP e caricare i voli…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<script>
+  // ---------------- CONFIGURAZIONE BASE ----------------
+  const OPENSKY_URL = "https://opensky-network.org/api/states/all";
+  // Raggio approssimativo area locale in gradi (~5° ≈ 550 km)
+  const LOCAL_DELTA_DEG = 5;
+  const REFRESH_MS = 10000; // 10s
+
+  let map;
+  let aircraftLayerGroup;
+  let aircraftMarkers = new Map(); // key: icao24, value: marker
+  let lastUserPos = null;
+
+  const elLocationStatus = document.getElementById("locationStatus");
+  const elFetchStatus = document.getElementById("fetchStatus");
+  const elFlightList = document.getElementById("flightList");
+  const elFlightCount = document.getElementById("flightCount");
+
+  // ---------------- INIZIALIZZA MAPPA ----------------
+  function initMap() {
+    map = L.map("map", {
+      worldCopyJump: true,
+      zoomControl: true,
+    }).setView([20, 0], 2);
+
+    // Tiles OpenStreetMap (uso libero con attribution) [web:6][web:9][web:12]
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 10,
+      minZoom: 2,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    }).addTo(map);
+
+    aircraftLayerGroup = L.layerGroup().addTo(map);
+  }
+
+  // ---------------- GEOLOCALIZZAZIONE IP ----------------
+  async function detectUserLocationByIP() {
+    try {
+      // ipapi.co: geolocalizzazione IP semplice, no key per base. [web:13]
+      const resp = await fetch("https://ipapi.co/json/");
+      if (!resp.ok) throw new Error("IP API error " + resp.status);
+      const data = await resp.json();
+
+      const lat = data.latitude;
+      const lon = data.longitude;
+      if (typeof lat !== "number" || typeof lon !== "number") {
+        throw new Error("Coordinate non valide dalla IP API");
+      }
+
+      lastUserPos = { lat, lon };
+      elLocationStatus.textContent = `Posizione IP stimata: ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+      map.setView([lat, lon], 6);
+
+      // cerchio area di interesse
+      L.circle([lat, lon], {
+        radius: 400000, // 400 km
+        color: "#4ea1ff",
+        weight: 1,
+        fillOpacity: 0.02
+      }).addTo(map);
+
+      // marker utente
+      L.marker([lat, lon], {
+        title: "La tua approssimativa posizione IP"
+      }).addTo(map).bindPopup("Area locale (stima IP)").openPopup();
+
+      return lastUserPos;
+    } catch (err) {
+      console.error(err);
+      elLocationStatus.textContent = "Impossibile rilevare posizione IP";
+      // fallback: Europa centrale
+      lastUserPos = { lat: 50, lon: 10 };
+      map.setView([50, 10], 4);
+      return lastUserPos;
+    }
+  }
+
+  // ---------------- FETCH TRAFFICO AEREO (OpenSky) ----------------
+  async function fetchLocalTraffic() {
+    if (!lastUserPos) return;
+
+    const lat = lastUserPos.lat;
+    const lon = lastUserPos.lon;
+
+    // bounding box per area locale [web:3]
+    const lamin = lat - LOCAL_DELTA_DEG;
+    const lamax = lat + LOCAL_DELTA_DEG;
+    const lomin = lon - LOCAL_DELTA_DEG;
+    const lomax = lon + LOCAL_DELTA_DEG;
+
+    const url = `${OPENSKY_URL}?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
+
+    try {
+      elFetchStatus.textContent = "Caricamento voli in corso…";
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error("Errore OpenSky: " + resp.status);
+      }
+      const data = await resp.json();
+      // Struttura: { time: int, states: [ [icao24, callsign, origin_country, time_position, last_contact, lon, lat, ... ] ] } [web:2][web:3]
+      const states = Array.isArray(data.states) ? data.states : [];
+      updateAircraftMarkers(states);
+      updateSidebar(states);
+      elFetchStatus.textContent = `Ultimo aggiornamento: ${new Date().toLocaleTimeString()}`;
+    } catch (err) {
+      console.error(err);
+      elFetchStatus.textContent = "Errore caricamento voli (limiti API o rete)";
+    }
+  }
+
+  // ---------------- GESTIONE MARKER AEREI ----------------
+  function createAircraftIcon(trackDeg) {
+    const div = document.createElement("div");
+    div.className = "aircraft-marker";
+    const rotation = typeof trackDeg === "number" ? trackDeg : 0;
+    div.style.transform = `rotate(${rotation}deg)`;
+    return L.divIcon({
+      html: div,
+      className: "",
+      iconSize: [18, 18],
+      iconAnchor: [9, 12]
+    });
+  }
+
+  function updateAircraftMarkers(states) {
+    const seen = new Set();
+
+    states.forEach(s => {
+      if (!s || s.length < 8) return;
+      const icao24 = s[0];
+      const callsign = (s[1] || "").trim() || "Senza callsign";
+      const origin = s[2] || "";
+      const lon = s[5];
+      const lat = s[6];
+      const baroAlt = s[7];
+      const onGround = s[8];
+      const velocity = s[9]; // m/s
+      const track = s[10];   // deg
+
+      if (typeof lat !== "number" || typeof lon !== "number") return;
+
+      seen.add(icao24);
+
+      const pos = [lat, lon];
+      const icon = createAircraftIcon(track);
+
+      if (aircraftMarkers.has(icao24)) {
+        const marker = aircraftMarkers.get(icao24);
+        marker.setLatLng(pos);
+        marker.setIcon(icon);
+        marker._flightData = s;
+      } else {
+        const marker = L.marker(pos, { icon });
+        marker._flightData = s;
+        marker.addTo(aircraftLayerGroup);
+        marker.bindPopup(buildPopupHtml(s));
+        marker.on("click", () => {
+          marker.openPopup();
+        });
+        aircraftMarkers.set(icao24, marker);
+      }
+    });
+
+    // rimuovi aerei non più presenti
+    for (const [icao24, marker] of aircraftMarkers.entries()) {
+      if (!seen.has(icao24)) {
+        aircraftLayerGroup.removeLayer(marker);
+        aircraftMarkers.delete(icao24);
+      }
+    }
+  }
+
+  function buildPopupHtml(state) {
+    const icao24 = state[0];
+    const callsign = (state[1] || "").trim() || "Senza callsign";
+    const origin = state[2] || "N/D";
+    const lon = state[5];
+    const lat = state[6];
+    const baroAlt = state[7];
+    const onGround = state[8];
+    const velocity = state[9];
+    const track = state[10];
+
+    const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
+    const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
+    const hdg = typeof track === "number" ? track.toFixed(0) + "°" : "N/D";
+    const posStr = (typeof lat === "number" && typeof lon === "number")
+      ? `${lat.toFixed(3)}, ${lon.toFixed(3)}`
+      : "N/D";
+
+    return `
+      <div style="min-width: 180px;">
+        <div style="font-weight:600;font-size:13px;">${callsign}</div>
+        <div style="font-size:11px;color:#777;">ICAO24: ${icao24.toUpperCase()}</div>
+        <div style="margin-top:6px;font-size:11px;">
+          <div><strong>Origine:</strong> ${origin}</div>
+          <div><strong>Quota:</strong> ${altFt}</div>
+          <div><strong>Velocit&agrave;:</strong> ${spdKts}</div>
+          <div><strong>Prua:</strong> ${hdg}</div>
+          <div><strong>Posizione:</strong> ${posStr}</div>
+          <div style="margin-top:4px;"><strong>Stato:</strong> ${onGround ? "A terra" : "In volo"}</div>
+        </div>
+        <div style="margin-top:6px;font-size:10px;color:#999;">
+          Dati via OpenSky Network (solo uso non commerciale).
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------------- SIDEBAR LISTA VOLI ----------------
+  function updateSidebar(states) {
+    elFlightList.innerHTML = "";
+    const count = states.length;
+    elFlightCount.textContent = `${count} aerei`;
+
+    if (count === 0) {
+      const div = document.createElement("div");
+      div.className = "info-line";
+      div.textContent = "Nessun volo ricevuto (possibili limiti API o zona poco coperta).";
+      elFlightList.appendChild(div);
+      return;
+    }
+
+    states
+      .filter(s => s && s.length >= 8 && typeof s[5] === "number" && typeof s[6] === "number")
+      .slice(0, 100) // limite UI
+      .forEach(s => {
+        const icao24 = s[0];
+        const callsign = (s[1] || "").trim() || "Senza callsign";
+        const origin = s[2] || "N/D";
+        const baroAlt = s[7];
+        const velocity = s[9];
+        const onGround = s[8];
+
+        const altFt = typeof baroAlt === "number" ? (baroAlt * 3.28084).toFixed(0) + " ft" : "N/D";
+        const spdKts = typeof velocity === "number" ? (velocity * 1.94384).toFixed(0) + " kt" : "N/D";
+
+        const row = document.createElement("div");
+        row.className = "flight-row";
+        row.innerHTML = `
+          <div class="flight-main">
+            ${callsign}
+            <span class="badge">${onGround ? "GND" : "FLY"}</span>
+          </div>
+          <div class="flight-sub">
+            ${origin} · ${altFt} · ${spdKts}
+          </div>
+        `;
+        row.onclick = () => {
+          const marker = aircraftMarkers.get(icao24);
+          if (marker) {
+            map.setView(marker.getLatLng(), Math.max(map.getZoom(), 7), { animate: true });
+            marker.openPopup();
+          }
+        };
+        elFlightList.appendChild(row);
+      });
+  }
+
+  // ---------------- AVVIO APP ----------------
+  (async function main() {
+    initMap();
+    await detectUserLocationByIP();
+    await fetchLocalTraffic();
+    setInterval(fetchLocalTraffic, REFRESH_MS);
+  })();
+</script>
+
+</body>
+</html>
