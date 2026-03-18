@@ -9,128 +9,122 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@2.1.0/dist/leaflet-velocity.css"/>
 <style>
-* { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:system-ui,sans-serif; background:#0a0a0f; color:#eee; width:100vw; height:100vh; overflow:hidden; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#09090f;color:#eee;width:100vw;height:100vh;overflow:hidden}
 
-#header {
-  position:fixed; top:0; left:0; right:0; height:46px;
-  background:#0d0d18; border-bottom:1px solid #1a1a30;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 12px; z-index:3000; gap:8px;
+#header{
+  position:fixed;top:0;left:0;right:0;height:46px;
+  background:#0c0c18;border-bottom:1px solid #181830;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;z-index:3000;gap:10px;
 }
-.title { font-size:13px; font-weight:800; white-space:nowrap; }
-#status { font-size:10px; color:#444; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px; flex:1; text-align:center; }
-#mode-buttons { display:flex; gap:5px; flex-shrink:0; }
-.mode-btn {
-  font-size:11px; font-weight:700; padding:4px 11px; border-radius:99px;
-  border:1px solid #222; background:#111; color:#555;
-  cursor:pointer; transition:all .2s; white-space:nowrap; outline:none;
+.title{font-size:13px;font-weight:800;white-space:nowrap;letter-spacing:.02em}
+#status{font-size:10px;color:#444;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#btns{display:flex;gap:5px;flex-shrink:0}
+.btn{
+  font-size:11px;font-weight:700;padding:4px 12px;border-radius:99px;
+  border:1px solid #1e1e30;background:#111;color:#555;
+  cursor:pointer;transition:all .2s;white-space:nowrap;outline:none;
 }
-.mode-btn.air-on  { background:#ffd500; color:#000; border-color:#ffd500; }
-.mode-btn.sea-on  { background:#00b4d8; color:#000; border-color:#00b4d8; }
-.mode-btn.wind-on { background:#7c4dff; color:#fff; border-color:#7c4dff; }
+.btn.air-on {background:#ffd500;color:#000;border-color:#ffd500}
+.btn.sea-on {background:#00b4d8;color:#000;border-color:#00b4d8}
+.btn.wind-on{background:#a855f7;color:#fff;border-color:#a855f7}
 
-#map { position:fixed; top:46px; left:0; right:0; bottom:0; z-index:1; }
+#map{position:fixed;top:46px;left:0;right:0;bottom:0;z-index:1}
 
-/* DETAIL PANEL */
-#detail {
-  position:fixed; top:56px; left:10px; width:278px;
-  background:rgba(10,10,20,.97); border:1px solid #1a1a30;
-  border-radius:12px; z-index:2500; display:none; flex-direction:column;
-  overflow:hidden; max-height:calc(100vh - 66px);
-  box-shadow:0 8px 40px rgba(0,0,0,.9);
+/* DETAIL */
+#detail{
+  position:fixed;top:56px;left:10px;width:278px;
+  background:rgba(9,9,20,.97);border:1px solid #181830;
+  border-radius:12px;z-index:2500;display:none;flex-direction:column;
+  overflow:hidden;max-height:calc(100vh - 66px);
+  box-shadow:0 8px 40px rgba(0,0,0,.95)
 }
-#detail.show { display:flex; }
-#det-close {
-  position:absolute; top:7px; right:9px; cursor:pointer;
-  font-size:13px; color:#555; z-index:5;
-  background:rgba(0,0,0,.6); border-radius:50%;
-  width:22px; height:22px; display:flex; align-items:center; justify-content:center;
+#detail.show{display:flex}
+#det-x{
+  position:absolute;top:7px;right:9px;cursor:pointer;font-size:13px;
+  color:#555;z-index:5;background:rgba(0,0,0,.7);border-radius:50%;
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center
 }
-#det-close:hover { color:#fff; }
-#det-img {
-  width:100%; height:152px; background:#060610;
-  position:relative; overflow:hidden; flex-shrink:0;
-}
-#det-img img { width:100%; height:100%; object-fit:cover; display:block; }
-.ph {
-  width:100%; height:100%; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; color:#333; font-size:11px; gap:5px;
-}
-.ph .ico { font-size:36px; }
-#det-body { padding:11px 13px; overflow-y:auto; flex:1; }
-#det-cs { font-size:17px; font-weight:800; margin-bottom:2px; }
-#det-id { font-size:10px; color:#444; margin-bottom:7px; }
-#det-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:9px; }
-.tag { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; text-transform:uppercase; }
-.t-fly { background:rgba(0,200,80,.1); color:#00c850; }
-.t-gnd { background:rgba(255,80,80,.1); color:#ff5050; }
-.t-mil { background:rgba(76,175,80,.15); color:#4caf50; }
-.t-civ { background:rgba(100,160,255,.1); color:#64a0ff; }
-.t-sea { background:rgba(0,180,216,.12); color:#00b4d8; }
-#det-desc { font-size:11px; color:#555; line-height:1.6; margin-bottom:9px; font-style:italic; border-left:2px solid #181828; padding-left:7px; }
-#det-tbl { width:100%; border-collapse:collapse; font-size:11px; }
-#det-tbl td:first-child { color:#444; padding:3px 10px 3px 0; width:82px; }
-#det-tbl td:last-child { color:#ddd; font-weight:600; }
-#det-tbl tr { border-bottom:1px solid #111; }
-#det-tbl tr:last-child { border-bottom:none; }
-#det-credit { font-size:9px; color:#252525; margin-top:9px; text-align:right; }
+#det-x:hover{color:#fff}
+#det-img{width:100%;height:150px;background:#060612;position:relative;overflow:hidden;flex-shrink:0}
+#det-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#2a2a3a;gap:6px}
+.ph .ico{font-size:36px}
+.ph span{font-size:11px}
+#det-body{padding:11px 13px;overflow-y:auto;flex:1}
+#det-cs{font-size:17px;font-weight:800;margin-bottom:2px}
+#det-id{font-size:10px;color:#383850;margin-bottom:7px}
+#det-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:9px}
+.tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase}
+.t-fly{background:rgba(0,200,80,.1);color:#00c864}
+.t-gnd{background:rgba(255,80,80,.1);color:#ff5050}
+.t-mil{background:rgba(76,175,80,.15);color:#4caf50}
+.t-civ{background:rgba(100,160,255,.1);color:#64a0ff}
+.t-sea{background:rgba(0,180,216,.12);color:#00b4d8}
+#det-desc{font-size:11px;color:#505060;line-height:1.6;margin-bottom:9px;
+  font-style:italic;border-left:2px solid #181830;padding-left:7px;display:none}
+#det-tbl{width:100%;border-collapse:collapse;font-size:11px}
+#det-tbl td:first-child{color:#383850;padding:3px 10px 3px 0;width:80px}
+#det-tbl td:last-child{color:#ddd;font-weight:600}
+#det-tbl tr{border-bottom:1px solid #0f0f1a}
+#det-tbl tr:last-child{border-bottom:none}
+#det-credit{font-size:9px;color:#202030;margin-top:9px;text-align:right}
 
 /* SIDEBAR */
-#sidebar {
-  position:fixed; top:56px; right:10px; width:252px;
-  max-height:calc(100vh - 66px); background:rgba(10,10,20,.97);
-  border:1px solid #1a1a30; border-radius:12px;
-  display:flex; flex-direction:column; overflow:hidden;
-  z-index:2000; box-shadow:0 8px 40px rgba(0,0,0,.9);
+#sidebar{
+  position:fixed;top:56px;right:10px;width:252px;
+  max-height:calc(100vh - 66px);
+  background:rgba(9,9,20,.97);border:1px solid #181830;
+  border-radius:12px;display:flex;flex-direction:column;
+  overflow:hidden;z-index:2000;box-shadow:0 8px 40px rgba(0,0,0,.95)
 }
-#sb-head {
-  padding:9px 12px; background:#0d0d1a; border-bottom:1px solid #161626;
-  display:flex; justify-content:space-between; align-items:center;
-  font-size:12px; font-weight:700; flex-shrink:0;
+#sb-head{
+  padding:9px 12px;background:#0c0c1a;border-bottom:1px solid #141425;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;font-weight:700;flex-shrink:0
 }
-#sb-count {
-  font-size:11px; font-weight:700; padding:2px 8px; border-radius:99px;
-  background:#ffd500; color:#000;
+#sb-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:#ffd500;color:#000}
+#filters{padding:8px 10px;border-bottom:1px solid #141425;background:#0a0a18;flex-shrink:0}
+.ft{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#383850;margin-bottom:5px}
+.fg{display:flex;flex-wrap:wrap;gap:4px}
+.fb{
+  font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;
+  border:1px solid #181830;background:#0d0d1c;color:#505060;
+  cursor:pointer;transition:all .15s;user-select:none
 }
-#filters { padding:8px 10px; border-bottom:1px solid #161626; background:#0a0a18; flex-shrink:0; }
-.ft { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:#444; margin-bottom:5px; }
-.fg { display:flex; flex-wrap:wrap; gap:4px; }
-.fb {
-  font-size:10px; font-weight:600; padding:3px 9px; border-radius:99px;
-  border:1px solid #1a1a2e; background:#0e0e1a; color:#555;
-  cursor:pointer; transition:all .15s; user-select:none;
-}
-.fb.on      { background:#ffd500; color:#000; border-color:#ffd500; }
-.fb.on-mil  { background:#4caf50; color:#000; border-color:#4caf50; }
-.fb.on-gnd  { background:#ff5555; color:#fff; border-color:#ff5555; }
-.fb.on-sea  { background:#00b4d8; color:#000; border-color:#00b4d8; }
-
-#sb-list { overflow-y:auto; flex:1; padding:4px 8px; }
-.fr { padding:5px 3px; border-bottom:1px solid #111; cursor:pointer; border-radius:4px; }
-.fr:hover { background:rgba(255,255,255,.03); }
-.fr:last-child { border-bottom:none; }
-.fn { font-size:12px; font-weight:700; display:flex; align-items:center; gap:3px; flex-wrap:wrap; }
-.fs { font-size:10px; color:#444; margin-top:1px; }
-.b { font-size:9px; padding:1px 5px; border-radius:99px; font-weight:700; text-transform:uppercase; }
-.b-f { background:rgba(0,200,80,.1);  color:#00c850; }
-.b-g { background:rgba(255,80,80,.1); color:#ff5050; }
-.b-m { background:rgba(76,175,80,.12); color:#4caf50; }
-.b-s { background:rgba(0,180,216,.12); color:#00b4d8; }
-.empty { font-size:11px; color:#333; padding:10px 4px; }
+.fb.on    {background:#ffd500;color:#000;border-color:#ffd500}
+.fb.on-mil{background:#4caf50;color:#000;border-color:#4caf50}
+.fb.on-gnd{background:#ff5555;color:#fff;border-color:#ff5555}
+.fb.on-sea{background:#00b4d8;color:#000;border-color:#00b4d8}
+#sb-list{overflow-y:auto;flex:1;padding:4px 8px}
+.fr{padding:5px 3px;border-bottom:1px solid #0f0f1a;cursor:pointer;border-radius:4px}
+.fr:hover{background:rgba(255,255,255,.025)}
+.fr:last-child{border-bottom:none}
+.fn{font-size:12px;font-weight:700;display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.fs{font-size:10px;color:#383850;margin-top:1px}
+.b{font-size:9px;padding:1px 5px;border-radius:99px;font-weight:700;text-transform:uppercase}
+.b-f{background:rgba(0,200,80,.1);color:#00c864}
+.b-g{background:rgba(255,80,80,.1);color:#ff5050}
+.b-m{background:rgba(76,175,80,.12);color:#4caf50}
+.b-s{background:rgba(0,180,216,.12);color:#00b4d8}
+.empty{font-size:11px;color:#2a2a3a;padding:10px 4px}
 
 /* CLUSTER */
-.marker-cluster-small  { background:rgba(255,213,0,.3); }
-.marker-cluster-small div  { background:rgba(255,213,0,.9); color:#000; font-weight:700; }
-.marker-cluster-medium { background:rgba(255,170,0,.3); }
-.marker-cluster-medium div { background:rgba(255,170,0,.9); color:#000; font-weight:700; }
-.marker-cluster-large  { background:rgba(255,100,0,.3); }
-.marker-cluster-large div  { background:rgba(255,100,0,.9); color:#000; font-weight:700; }
+.marker-cluster-small  {background:rgba(255,213,0,.25)}
+.marker-cluster-small div  {background:rgba(255,213,0,.9);color:#000;font-weight:700}
+.marker-cluster-medium {background:rgba(255,170,0,.25)}
+.marker-cluster-medium div {background:rgba(255,170,0,.9);color:#000;font-weight:700}
+.marker-cluster-large  {background:rgba(255,100,0,.25)}
+.marker-cluster-large div  {background:rgba(255,100,0,.9);color:#000;font-weight:700}
 
-.leaflet-popup-content-wrapper { background:#12121f!important; color:#eee!important; border:1px solid #1a1a2e!important; border-radius:10px!important; box-shadow:0 4px 24px rgba(0,0,0,.9)!important; }
-.leaflet-popup-content { margin:0!important; }
-.leaflet-popup-tip { background:#12121f!important; }
-.leaflet-popup-close-button { color:#555!important; }
+.leaflet-popup-content-wrapper{background:#10101e!important;color:#eee!important;border:1px solid #181830!important;border-radius:10px!important;box-shadow:0 4px 24px rgba(0,0,0,.95)!important}
+.leaflet-popup-content{margin:0!important}
+.leaflet-popup-tip{background:#10101e!important}
+.leaflet-popup-close-button{color:#555!important}
+
+/* Info vento bottom-left */
+.leaflet-control-velocity{background:rgba(9,9,20,.85)!important;color:#a855f7!important;border:1px solid #a855f720!important;border-radius:8px!important;padding:4px 10px!important;font-size:11px!important;font-weight:600!important}
 </style>
 </head>
 <body>
@@ -138,17 +132,17 @@ body { font-family:system-ui,sans-serif; background:#0a0a0f; color:#eee; width:1
 <div id="header">
   <span class="title">✈ FlyRadar + ⛵ MarineRadar</span>
   <span id="status">Avvio…</span>
-  <div id="mode-buttons">
-    <button class="mode-btn air-on" id="btn-air"  onclick="setMode('air')">✈ Aerei</button>
-    <button class="mode-btn"        id="btn-sea"  onclick="setMode('sea')">⛵ Navi</button>
-    <button class="mode-btn"        id="btn-wind" onclick="toggleWind()">💨 Vento</button>
+  <div id="btns">
+    <button class="btn air-on" id="btn-air"  onclick="setMode('air')">✈ Aerei</button>
+    <button class="btn"        id="btn-sea"  onclick="setMode('sea')">⛵ Navi</button>
+    <button class="btn"        id="btn-wind" onclick="toggleWind()">💨 Vento</button>
   </div>
 </div>
 
 <div id="map"></div>
 
 <div id="detail">
-  <div id="det-close" onclick="closeDetail()">✕</div>
+  <div id="det-x" onclick="closeDetail()">✕</div>
   <div id="det-img"><div class="ph"><span class="ico">✈</span><span>Caricamento…</span></div></div>
   <div id="det-body">
     <div id="det-cs">—</div>
@@ -172,10 +166,7 @@ body { font-family:system-ui,sans-serif; background:#0a0a0f; color:#eee; width:1
     <span id="sb-title">Voli area locale</span>
     <span id="sb-count">0</span>
   </div>
-  <div id="filters">
-    <div class="ft">Filtri</div>
-    <div class="fg" id="fg"></div>
-  </div>
+  <div id="filters"><div class="ft">Filtri</div><div class="fg" id="fg"></div></div>
   <div id="sb-list"><div class="empty">Caricamento…</div></div>
 </div>
 
@@ -184,17 +175,28 @@ body { font-family:system-ui,sans-serif; background:#0a0a0f; color:#eee; width:1
 <script src="https://unpkg.com/leaflet-velocity@2.1.0/dist/leaflet-velocity.js"></script>
 
 <script>
-// ══════════════════════════════════════════════════
-// COSTANTI
-// ══════════════════════════════════════════════════
-const OPENSKY = "https://opensky-network.org/api/states/all";
-const AIR_BBOX = { lamin:43.5, lamax:48.5, lomin:5.0,  lomax:13.5 };
-const SEA_BBOX = { lamin:36.0, lamax:48.0, lomin:4.0,  lomax:20.0 };
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+const OPENSKY   = "https://opensky-network.org/api/states/all";
+const AIR_BBOX  = {lamin:43.5,lamax:48.5,lomin:5.0, lomax:13.5};
+const SEA_BBOX  = {lamin:36.0,lamax:48.0,lomin:4.0, lomax:20.0};
 
-// API navi senza key (Marinesia proxy)
-const MARINESIA_URL = "https://meri.digitraffic.fi/api/v1/locations/latest";
-// fallback: OpenSeaMap non ha API REST dati live, usiamo Digitraffic (Finlandia → Baltico + Mediterraneo)
-const DIGITRAFFIC_URL = "https://meri.digitraffic.fi/api/v1/locations/latest";
+// Griglia vento 8×8 = 64 punti sull'Italia/Mediterraneo nord
+// Open-Meteo supporta lat/lon multipli separati da virgola [web:118][web:123]
+const WIND_LATS = [44.0,44.8,45.6,46.4,47.2,48.0,43.2,42.4];
+const WIND_LONS = [6.0, 7.5, 9.0,10.5,12.0,13.5, 5.0, 8.0];
+
+// Opzionale: API key aisstream.io (gratis con GitHub) → lascia "" se non ce l'hai
+const AISSTREAM_KEY = "";
+
+// ══════════════════════════════════════════════════════════
+// STATO
+// ══════════════════════════════════════════════════════════
+let map, cluster, trailLayer, windLayer;
+let lastAir=[], lastSea=[];
+let mode="air", windOn=false;
+let airTimer=null, seaTimer=null;
 
 const MIL_PREFIXES  = ["ae","a1","a2","a3","a4","a5","43c","43d","43e","43f","3b7","3b8","3b9","3ba","3bb","43b","43a","4240","4241","4242","4243","4244","4245","300","301","302","500","501"];
 const MIL_CALLSIGNS = ["RCH","DUKE","REACH","JAKE","FURY","VIPER","GHOST","EAGLE","VENUS","MARS","ATLAS","MAGMA","TOPGUN","KNIFE","IRON","STEEL","AMI","IAM","GAF","RAF","USAF","NAVY"];
@@ -206,7 +208,7 @@ const AIRLINE_DESC  = {
   "DLH":"Lufthansa — compagnia di bandiera tedesca.",
   "AFR":"Air France — compagnia di bandiera francese.",
   "UAE":"Emirates — compagnia degli Emirati Arabi.",
-  "SWR":"Swiss International Air Lines — Svizzera.",
+  "SWR":"Swiss International Air Lines.",
   "VOL":"Volotea — low-cost spagnola, molte rotte italiane.",
   "WZZ":"Wizz Air — low-cost ungherese.",
   "VLG":"Vueling — low-cost spagnola gruppo IAG.",
@@ -216,158 +218,144 @@ const AIRLINE_DESC  = {
   "RAF":"Royal Air Force — militare britannico.",
 };
 
-// ══════════════════════════════════════════════════
-// STATO
-// ══════════════════════════════════════════════════
-let map, cluster, trailLayer, windLayer;
-let lastAir = [], lastSea = [];
-let mode = "air", windOn = false;
-let airTimer = null;
+const airF = {civil:true,mil:true,fly:true,gnd:false,heavy:false};
+const seaF = {cargo:true,tanker:true,passenger:true,military:true,other:true};
 
-const airFilters = { civil:true, mil:true, fly:true, gnd:false, heavy:false };
-const seaFilters = { cargo:true, tanker:true, passenger:true, military:true, other:true };
-
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // UTILS
-// ══════════════════════════════════════════════════
-const ms2kmh  = v => typeof v==="number" ? (v*3.6).toFixed(0)+" km/h" : "—";
-const m2ft    = v => typeof v==="number" ? (v*3.28084).toFixed(0)+" ft" : "—";
-const kn2kmh  = v => typeof v==="number" ? (v*1.852).toFixed(0)+" km/h" : "—";
-const setEl   = (id,v) => document.getElementById(id).textContent = v;
+// ══════════════════════════════════════════════════════════
+const ms2k  = v=>typeof v==="number"?(v*3.6).toFixed(0)+" km/h":"—";
+const m2ft  = v=>typeof v==="number"?(v*3.28084).toFixed(0)+" ft":"—";
+const kn2k  = v=>typeof v==="number"?(v*1.852).toFixed(0)+" km/h":"—";
+const $     = id=>document.getElementById(id);
+const setT  = (id,v)=>$(id).textContent=v;
 
 function isMil(s){
-  const ic=(s[0]||"").toLowerCase(), cs=(s[1]||"").trim().toUpperCase();
-  return MIL_PREFIXES.some(p=>ic.startsWith(p)) || MIL_CALLSIGNS.some(p=>cs.startsWith(p));
+  const ic=(s[0]||"").toLowerCase(),cs=(s[1]||"").trim().toUpperCase();
+  return MIL_PREFIXES.some(p=>ic.startsWith(p))||MIL_CALLSIGNS.some(p=>cs.startsWith(p));
 }
 function isHeavy(s){
   const c=s.length>=18?s[17]:null;
-  if(typeof c==="number") return c===5||c===6;
+  if(typeof c==="number")return c===5||c===6;
   return typeof s[7]==="number"&&s[7]>9000&&typeof s[9]==="number"&&s[9]>220;
 }
 function passAir(s){
   const m=isMil(s),g=s[8];
-  if(!airFilters.civil&&!m)  return false;
-  if(!airFilters.mil  && m)  return false;
-  if(!airFilters.fly  &&!g)  return false;
-  if(!airFilters.gnd  && g)  return false;
-  if( airFilters.heavy&&!isHeavy(s)) return false;
+  if(!airF.civil&&!m)return false;
+  if(!airF.mil&&m)return false;
+  if(!airF.fly&&!g)return false;
+  if(!airF.gnd&&g)return false;
+  if(airF.heavy&&!isHeavy(s))return false;
   return true;
 }
-function shipType(t){
-  if(!t) return "Altro";
-  if(t>=70&&t<=79) return "Cargo";
-  if(t>=80&&t<=89) return "Tanker";
-  if(t>=60&&t<=69) return "Passenger";
-  if(t===35||t===36) return "Military";
-  return "Altro";
+function sType(t){
+  if(!t)return"Altro";
+  if(t>=70&&t<=79)return"Cargo";
+  if(t>=80&&t<=89)return"Tanker";
+  if(t>=60&&t<=69)return"Passenger";
+  if(t===35||t===36)return"Military";
+  return"Altro";
 }
 function passSea(s){
-  const t=shipType(s.shipType||s.type);
-  if(t==="Cargo"     &&!seaFilters.cargo)     return false;
-  if(t==="Tanker"    &&!seaFilters.tanker)    return false;
-  if(t==="Passenger" &&!seaFilters.passenger) return false;
-  if(t==="Military"  &&!seaFilters.military)  return false;
-  if(t==="Altro"     &&!seaFilters.other)     return false;
+  const t=sType(s.shipType||s.type||0);
+  if(t==="Cargo"&&!seaF.cargo)return false;
+  if(t==="Tanker"&&!seaF.tanker)return false;
+  if(t==="Passenger"&&!seaF.passenger)return false;
+  if(t==="Military"&&!seaF.military)return false;
+  if(t==="Altro"&&!seaF.other)return false;
   return true;
 }
-function getAirDesc(cs,m){
-  if(!cs) return null;
-  const c=cs.trim().toUpperCase();
-  for(const[k,v] of Object.entries(AIRLINE_DESC)) if(c.startsWith(k)) return v;
-  return m ? "Aeromobile militare identificato via ICAO24/callsign." : "Aeromobile civile in transito.";
+function airDesc(cs,m){
+  const c=(cs||"").trim().toUpperCase();
+  for(const[k,v]of Object.entries(AIRLINE_DESC))if(c.startsWith(k))return v;
+  return m?"Aeromobile militare identificato via ICAO24/callsign.":"Aeromobile civile in transito.";
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // MAPPA
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function initMap(){
-  map = L.map("map",{center:[44,11],zoom:6,zoomControl:true});
+  map=L.map("map",{center:[44,11],zoom:6,zoomControl:true});
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-    attribution:"&copy; OpenStreetMap", maxZoom:13, minZoom:3
+    attribution:"&copy; OpenStreetMap",maxZoom:13,minZoom:3
   }).addTo(map);
-
-  trailLayer = L.layerGroup().addTo(map);
-
-  cluster = L.markerClusterGroup({
-    maxClusterRadius:50, disableClusteringAtZoom:9,
-    spiderfyOnMaxZoom:true, zoomToBoundsOnClick:true,
+  trailLayer=L.layerGroup().addTo(map);
+  cluster=L.markerClusterGroup({
+    maxClusterRadius:50,disableClusteringAtZoom:9,
+    spiderfyOnMaxZoom:true,zoomToBoundsOnClick:true,
     polygonOptions:{color:"#00e5ff",weight:1,fillOpacity:.04}
   });
   map.addLayer(cluster);
-
-  map.on("click",()=>{ trailLayer.clearLayers(); closeDetail(); });
+  map.on("click",()=>{trailLayer.clearLayers();closeDetail()});
   setTimeout(()=>map.invalidateSize(),200);
   window.addEventListener("resize",()=>map.invalidateSize());
 }
 
-// ══════════════════════════════════════════════════
-// TRAIETTORIA CIANO NEON
-// ══════════════════════════════════════════════════
-function drawTrail(lat, lon, track, speedMs){
+// ══════════════════════════════════════════════════════════
+// TRAIETTORIA — linea ciano neon triplo strato
+// ══════════════════════════════════════════════════════════
+function drawTrail(lat,lon,track,speedMs){
   trailLayer.clearLayers();
-  if(typeof lat!=="number"||typeof lon!=="number") return;
-  const sp=typeof speedMs==="number"&&speedMs>0 ? speedMs : 150;
-  const steps=[5,10,20];
-  const R=6371000, rd=d=>d*Math.PI/180, dr=r=>r*180/Math.PI;
+  if(typeof lat!=="number"||typeof lon!=="number")return;
+  const sp=typeof speedMs==="number"&&speedMs>0?speedMs:150;
+  const steps=[5,10,20],R=6371000;
+  const rd=d=>d*Math.PI/180,dr=r=>r*180/Math.PI;
   const pts=[[lat,lon]];
   steps.forEach(m=>{
-    const d=sp*m*60/R, br=rd(track||0), la=rd(lat), lo=rd(lon);
+    const d=sp*m*60/R,br=rd(track||0),la=rd(lat),lo=rd(lon);
     const la2=Math.asin(Math.sin(la)*Math.cos(d)+Math.cos(la)*Math.sin(d)*Math.cos(br));
     const lo2=lo+Math.atan2(Math.sin(br)*Math.sin(d)*Math.cos(la),Math.cos(d)-Math.sin(la)*Math.sin(la2));
     pts.push([dr(la2),dr(lo2)]);
   });
-
-  // Glow esterno (largho, semitrasparente)
-  L.polyline(pts,{color:"#00e5ff",weight:9,opacity:.15}).addTo(trailLayer);
-  // Bordo intermedio
-  L.polyline(pts,{color:"#00e5ff",weight:4,opacity:.5}).addTo(trailLayer);
-  // Linea principale tratteggiata
+  // Glow
+  L.polyline(pts,{color:"#00e5ff",weight:10,opacity:.12}).addTo(trailLayer);
+  // Bordo
+  L.polyline(pts,{color:"#00e5ff",weight:4,opacity:.55}).addTo(trailLayer);
+  // Linea bianca tratteggiata
   L.polyline(pts,{color:"#ffffff",weight:2,opacity:.95,dashArray:"10 7"}).addTo(trailLayer);
-
+  // Punto finale
   L.circleMarker(pts[pts.length-1],{radius:5,color:"#00e5ff",fillColor:"#00e5ff",fillOpacity:1,weight:2}).addTo(trailLayer);
+  // Etichette minuti
   pts.slice(1).forEach((p,i)=>{
     L.marker(p,{icon:L.divIcon({
       className:"",
-      html:`<div style="font-size:10px;font-weight:700;color:#00e5ff;text-shadow:0 0 8px #00e5ff,0 0 2px #000;white-space:nowrap;margin-left:8px;">+${steps[i]}min</div>`,
+      html:`<div style="font-size:10px;font-weight:700;color:#00e5ff;text-shadow:0 0 8px #00e5ff,0 0 2px #000;white-space:nowrap;margin-left:8px">+${steps[i]}min</div>`,
       iconAnchor:[0,8]
     })}).addTo(trailLayer);
   });
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // ICONE
-// ══════════════════════════════════════════════════
-function planeIcon(track, mil){
-  const r=typeof track==="number"?track:0, c=mil?"#4caf50":"#ffd500";
-  return L.divIcon({ className:"", iconSize:[22,22], iconAnchor:[11,11],
-    html:`<div style="width:22px;height:22px;transform:rotate(${r}deg);transform-origin:center;">
+// ══════════════════════════════════════════════════════════
+function planeIcon(track,mil){
+  const r=typeof track==="number"?track:0,c=mil?"#4caf50":"#ffd500";
+  return L.divIcon({className:"",iconSize:[22,22],iconAnchor:[11,11],
+    html:`<div style="width:22px;height:22px;transform:rotate(${r}deg);transform-origin:center">
       <svg viewBox="0 0 24 24" width="22" height="22">
         <path fill="${c}" stroke="#000" stroke-width=".5"
           d="M12 2c-.4 0-.77.24-.92.62L9.2 8.5 4 10.5v1l4.5-.5L11 15l-2.5 2-2 .5v1l3-.3L12 17l2.5 1.2 3 .3v-1l-2-.5L13 15l2.5-4.5L20 11.5v-1L14.8 8.5 12.92 2.62A1 1 0 0 0 12 2z"/>
-      </svg></div>`
-  });
+      </svg></div>`});
 }
 
-function shipIcon(track, type){
+function shipIcon(track,type){
   const r=typeof track==="number"?track:0;
-  const c = type==="Military"?"#4caf50" : type==="Tanker"?"#ff9800" : type==="Passenger"?"#e040fb" : "#00b4d8";
-  return L.divIcon({ className:"", iconSize:[20,20], iconAnchor:[10,10],
-    html:`<div style="width:20px;height:20px;transform:rotate(${r}deg);transform-origin:center;">
+  const c=type==="Military"?"#4caf50":type==="Tanker"?"#ff9800":type==="Passenger"?"#e040fb":"#00b4d8";
+  return L.divIcon({className:"",iconSize:[20,20],iconAnchor:[10,10],
+    html:`<div style="width:20px;height:20px;transform:rotate(${r}deg);transform-origin:center">
       <svg viewBox="0 0 24 24" width="20" height="20">
-        <path fill="${c}" stroke="#000" stroke-width=".6"
-          d="M12 3 L7 10 H4 L12 22 L20 10 H17 Z"/>
-      </svg></div>`
-  });
+        <path fill="${c}" stroke="#000" stroke-width=".6" d="M12 3L7 10H4L12 22L20 10H17Z"/>
+      </svg></div>`});
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // DETAIL PANEL
-// ══════════════════════════════════════════════════
-function showDetail(){  document.getElementById("detail").classList.add("show"); }
-function closeDetail(){ document.getElementById("detail").classList.remove("show"); }
+// ══════════════════════════════════════════════════════════
+function showDetail(){$("detail").classList.add("show")}
+function closeDetail(){$("detail").classList.remove("show")}
 
 function loadAirPhoto(icao){
-  const w=document.getElementById("det-img");
+  const w=$("det-img");
   w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Caricamento foto…</span></div>`;
   fetch(`https://api.planespotters.net/pub/photos/hex/${icao.toLowerCase()}`)
     .then(r=>r.json()).then(d=>{
@@ -377,343 +365,374 @@ function loadAirPhoto(icao){
         if(src){
           const cr=ph[0].photographer||"";
           w.innerHTML=`<img src="${src}" onerror="this.parentElement.innerHTML='<div class=ph><span class=ico>✈</span><span>Nessuna foto</span></div>'"/>
-            ${cr?`<div style="position:absolute;bottom:4px;right:6px;font-size:9px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.5);padding:1px 5px;border-radius:4px;">📷 ${cr}</div>`:""}`;
+            ${cr?`<div style="position:absolute;bottom:4px;right:6px;font-size:9px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.6);padding:1px 5px;border-radius:4px">📷 ${cr}</div>`:""}`;
           return;
         }
       }
       w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Nessuna foto</span></div>`;
-    }).catch(()=>{ w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Foto non disponibile</span></div>`; });
+    }).catch(()=>{w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Foto non disponibile</span></div>`});
 }
 
 function loadShipPhoto(mmsi){
-  const w=document.getElementById("det-img");
+  const w=$("det-img");
   w.innerHTML=`<div class="ph"><span class="ico">⛵</span><span>Caricamento foto…</span></div>`;
   const url=`https://photos.marinetraffic.com/ais/showphoto.aspx?mmsi=${mmsi}&size=thumb300`;
   const img=new Image();
-  img.onload=()=>{ w.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;"/>`; };
-  img.onerror=()=>{ w.innerHTML=`<div class="ph"><span class="ico">⛵</span><span>Nessuna foto disponibile</span></div>`; };
+  img.onload=()=>{w.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover"/>`};
+  img.onerror=()=>{w.innerHTML=`<div class="ph"><span class="ico">⛵</span><span>Nessuna foto disponibile</span></div>`};
   img.src=url;
 }
 
 function openAirDetail(s){
-  const m=isMil(s), g=s[8];
+  const m=isMil(s),g=s[8];
   const cs=(s[1]||"").trim()||"Senza callsign";
-  setEl("det-cs", cs);
-  setEl("det-id", "ICAO24: "+(s[0]||"").toUpperCase());
-  setEl("d-c", s[2]||"—");
-  setEl("d-a", m2ft(s[7]));
-  setEl("d-s", ms2kmh(s[9]));
-  setEl("d-h", typeof s[10]==="number"?s[10].toFixed(0)+"°":"—");
-  setEl("d-p", (typeof s[6]==="number"&&typeof s[5]==="number")?s[6].toFixed(3)+", "+s[5].toFixed(3):"—");
-  setEl("d-g", g?"🔴 A terra":"🟢 In volo");
-  document.getElementById("row-alt").style.display="";
-  document.getElementById("det-tags").innerHTML=`
-    <span class="tag ${g?"t-gnd":"t-fly"}">${g?"A terra":"In volo"}</span>
-    <span class="tag ${m?"t-mil":"t-civ"}">${m?"Militare":"Civile"}</span>`;
-  const desc=getAirDesc(cs,m)||"";
-  const de=document.getElementById("det-desc");
-  de.textContent=desc; de.style.display=desc?"block":"none";
-  document.getElementById("det-credit").textContent="Foto: Planespotters.net · Dati: OpenSky Network";
+  setT("det-cs",cs);
+  setT("det-id","ICAO24: "+(s[0]||"").toUpperCase());
+  setT("d-c",s[2]||"—");setT("d-a",m2ft(s[7]));
+  setT("d-s",ms2k(s[9]));
+  setT("d-h",typeof s[10]==="number"?s[10].toFixed(0)+"°":"—");
+  setT("d-p",(typeof s[6]==="number"&&typeof s[5]==="number")?s[6].toFixed(3)+", "+s[5].toFixed(3):"—");
+  setT("d-g",g?"🔴 A terra":"🟢 In volo");
+  $("row-alt").style.display="";
+  $("det-tags").innerHTML=`<span class="tag ${g?"t-gnd":"t-fly"}">${g?"A terra":"In volo"}</span><span class="tag ${m?"t-mil":"t-civ"}">${m?"Militare":"Civile"}</span>`;
+  const desc=airDesc(cs,m);
+  const de=$("det-desc");de.textContent=desc;de.style.display="block";
+  $("det-credit").textContent="Foto: Planespotters.net · Dati: OpenSky Network";
   loadAirPhoto(s[0]||"");
   showDetail();
 }
 
 function openSeaDetail(ship){
-  const t=shipType(ship.shipType||ship.type);
-  setEl("det-cs", ship.name||("MMSI: "+ship.mmsi));
-  setEl("det-id", "MMSI: "+(ship.mmsi||"—"));
-  setEl("d-c", ship.country||"—");
-  setEl("d-a", "—");
-  setEl("d-s", kn2kmh(ship.sog));
-  setEl("d-h", typeof ship.cog==="number"?ship.cog.toFixed(0)+"°":"—");
-  setEl("d-p", (typeof ship.lat==="number"&&typeof ship.lon==="number")?ship.lat.toFixed(3)+", "+ship.lon.toFixed(3):"—");
-  setEl("d-g", ship.navStatus||"In navigazione");
-  document.getElementById("row-alt").style.display="none";
-  document.getElementById("det-tags").innerHTML=`<span class="tag t-sea">${t}</span><span class="tag t-sea">⛵ Nave</span>`;
-  const de=document.getElementById("det-desc");
-  de.textContent=`${t} — rilevato via AIS (Automatic Identification System).`; de.style.display="block";
-  document.getElementById("det-credit").textContent="Foto: MarineTraffic · Dati: AIS Digitraffic";
-  loadShipPhoto(ship.mmsi);
+  const t=sType(ship.shipType||ship.type||0);
+  setT("det-cs",ship.name||("MMSI: "+ship.mmsi));
+  setT("det-id","MMSI: "+(ship.mmsi||"—"));
+  setT("d-c",ship.country||"—");
+  setT("d-a","—");
+  setT("d-s",kn2k(ship.sog));
+  setT("d-h",typeof ship.cog==="number"?ship.cog.toFixed(0)+"°":"—");
+  setT("d-p",(typeof ship.lat==="number"&&typeof ship.lon==="number")?ship.lat.toFixed(3)+", "+ship.lon.toFixed(3):"—");
+  setT("d-g",ship.navStatus||"In navigazione");
+  $("row-alt").style.display="none";
+  $("det-tags").innerHTML=`<span class="tag t-sea">${t}</span><span class="tag t-sea">⛵ Nave</span>`;
+  const de=$("det-desc");de.textContent=`${t} — rilevato via AIS (Automatic Identification System).`;de.style.display="block";
+  $("det-credit").textContent="Foto: MarineTraffic · Dati: AIS";
+  loadShipPhoto(ship.mmsi||"0");
   showDetail();
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // RENDER AEREI
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function renderAir(){
-  cluster.clearLayers(); trailLayer.clearLayers(); closeDetail();
+  cluster.clearLayers();trailLayer.clearLayers();closeDetail();
   const batch=[];
   lastAir.forEach(s=>{
-    if(!s||s.length<7) return;
+    if(!s||s.length<7)return;
     const la=s[6],lo=s[5];
-    if(typeof la!=="number"||typeof lo!=="number") return;
-    if(!passAir(s)) return;
+    if(typeof la!=="number"||typeof lo!=="number")return;
+    if(!passAir(s))return;
     const m=isMil(s);
     const mk=L.marker([la,lo],{icon:planeIcon(s[10],m)});
-    mk.on("click",()=>{ drawTrail(la,lo,s[10]||0,s[9]); openAirDetail(s); });
+    mk.on("click",()=>{drawTrail(la,lo,s[10]||0,s[9]);openAirDetail(s)});
     batch.push(mk);
   });
   cluster.addLayers(batch);
-  const v=lastAir.filter(s=>s&&s.length>=7&&typeof s[6]==="number"&&typeof s[5]==="number"&&passAir(s));
-  document.getElementById("sb-count").textContent=v.length;
-  document.getElementById("sb-count").style.cssText="background:#ffd500;color:#000;";
-  const el=document.getElementById("sb-list"); el.innerHTML="";
-  if(!v.length){ el.innerHTML=`<div class="empty">Nessun volo con questi filtri.</div>`; return; }
+  const v=lastAir.filter(s=>s&&s.length>=7&&typeof s[6]==="number"&&passAir(s));
+  $("sb-count").textContent=v.length;
+  $("sb-count").style.cssText="background:#ffd500;color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px";
+  const el=$("sb-list");el.innerHTML="";
+  if(!v.length){el.innerHTML=`<div class="empty">Nessun volo con questi filtri.</div>`;return}
   v.slice(0,150).forEach(s=>{
-    const cs=(s[1]||"").trim()||"Senza callsign", g=s[8], m=isMil(s);
-    const r=document.createElement("div"); r.className="fr";
+    const cs=(s[1]||"").trim()||"Senza callsign",g=s[8],m=isMil(s);
+    const r=document.createElement("div");r.className="fr";
     r.innerHTML=`<div class="fn">${cs}<span class="b ${g?"b-g":"b-f"}">${g?"GND":"FLY"}</span>${m?`<span class="b b-m">MIL</span>`:""}</div>
-      <div class="fs">${s[2]||"—"} · ${m2ft(s[7])} · ${ms2kmh(s[9])}</div>`;
-    r.onclick=()=>{ map.setView([s[6],s[5]],10,{animate:true}); drawTrail(s[6],s[5],s[10]||0,s[9]); openAirDetail(s); };
+      <div class="fs">${s[2]||"—"} · ${m2ft(s[7])} · ${ms2k(s[9])}</div>`;
+    r.onclick=()=>{map.setView([s[6],s[5]],10,{animate:true});drawTrail(s[6],s[5],s[10]||0,s[9]);openAirDetail(s)};
     el.appendChild(r);
   });
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // RENDER NAVI
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function renderSea(){
-  cluster.clearLayers(); trailLayer.clearLayers(); closeDetail();
+  cluster.clearLayers();trailLayer.clearLayers();closeDetail();
   const batch=[];
   lastSea.forEach(ship=>{
-    if(typeof ship.lat!=="number"||typeof ship.lon!=="number") return;
-    if(!passSea(ship)) return;
-    const t=shipType(ship.shipType||ship.type);
+    if(typeof ship.lat!=="number"||typeof ship.lon!=="number")return;
+    if(!passSea(ship))return;
+    const t=sType(ship.shipType||ship.type||0);
     const mk=L.marker([ship.lat,ship.lon],{icon:shipIcon(ship.cog,t)});
     mk.on("click",()=>{
       const sogMs=typeof ship.sog==="number"?ship.sog*.5144:100;
-      drawTrail(ship.lat,ship.lon,ship.cog||0,sogMs);
-      openSeaDetail(ship);
+      drawTrail(ship.lat,ship.lon,ship.cog||0,sogMs);openSeaDetail(ship);
     });
     batch.push(mk);
   });
   cluster.addLayers(batch);
-  const v=lastSea.filter(s=>typeof s.lat==="number"&&typeof s.lon==="number"&&passSea(s));
-  document.getElementById("sb-count").textContent=v.length;
-  document.getElementById("sb-count").style.cssText="background:#00b4d8;color:#000;";
-  const el=document.getElementById("sb-list"); el.innerHTML="";
-  if(!v.length){ el.innerHTML=`<div class="empty">Nessuna nave con questi filtri.<br><span style="color:#333">Caricamento AIS in corso…</span></div>`; return; }
+  const v=lastSea.filter(s=>typeof s.lat==="number"&&passSea(s));
+  $("sb-count").textContent=v.length;
+  $("sb-count").style.cssText="background:#00b4d8;color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px";
+  const el=$("sb-list");el.innerHTML="";
+  if(!v.length){el.innerHTML=`<div class="empty">Nessuna nave con questi filtri.</div>`;return}
   v.slice(0,150).forEach(ship=>{
-    const t=shipType(ship.shipType||ship.type);
-    const r=document.createElement("div"); r.className="fr";
+    const t=sType(ship.shipType||ship.type||0);
+    const r=document.createElement("div");r.className="fr";
     r.innerHTML=`<div class="fn">${ship.name||ship.mmsi||"—"}<span class="b b-s">${t}</span></div>
-      <div class="fs">${ship.country||"—"} · ${kn2kmh(ship.sog)}</div>`;
+      <div class="fs">${ship.country||"—"} · ${kn2k(ship.sog)}</div>`;
     r.onclick=()=>{
       map.setView([ship.lat,ship.lon],10,{animate:true});
-      const sogMs=typeof ship.sog==="number"?ship.sog*.5144:100;
-      drawTrail(ship.lat,ship.lon,ship.cog||0,sogMs); openSeaDetail(ship);
+      drawTrail(ship.lat,ship.lon,ship.cog||0,(ship.sog||0)*.5144);openSeaDetail(ship);
     };
     el.appendChild(r);
   });
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // FETCH AEREI
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 async function fetchAir(){
-  if(mode!=="air") return;
+  if(mode!=="air")return;
   const B=AIR_BBOX;
-  const url=`${OPENSKY}?lamin=${B.lamin}&lomin=${B.lomin}&lamax=${B.lamax}&lomax=${B.lomax}`;
-  const st=document.getElementById("status");
+  const st=$("status");
   try{
     st.textContent="Caricamento voli…";
-    const r=await fetch(url);
-    if(r.status===429){ st.textContent="⚠ Rate limit API (riprovo tra 20s)"; return; }
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    const d=await r.json();
+    const res=await fetch(`${OPENSKY}?lamin=${B.lamin}&lomin=${B.lomin}&lamax=${B.lamax}&lomax=${B.lomax}`);
+    if(res.status===429){st.textContent="⚠ Rate limit API (riprovo tra 20s)";return}
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const d=await res.json();
     lastAir=Array.isArray(d.states)?d.states:[];
     renderAir();
     st.textContent=`✓ ${lastAir.length} voli · ${new Date().toLocaleTimeString()}`;
-  }catch(e){ st.textContent="✗ "+e.message; console.error(e); }
+  }catch(e){st.textContent="✗ "+e.message;console.error(e)}
 }
 
-// ══════════════════════════════════════════════════
-// FETCH NAVI — Digitraffic.fi (no API key, globale)
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// FETCH NAVI — 3 tier + demo
+// ══════════════════════════════════════════════════════════
 async function fetchSea(){
-  if(mode!=="sea") return;
-  const st=document.getElementById("status");
+  if(mode!=="sea")return;
+  const B=SEA_BBOX,st=$("status");
+
+  // ── TIER 1: Digitraffic (affidabile, no key, formato noto) ──
   try{
     st.textContent="Caricamento navi AIS…";
-
-    // Digitraffic restituisce tutte le posizioni recenti
-    const r=await fetch(DIGITRAFFIC_URL);
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    const d=await r.json();
-
-    // Formato Digitraffic: { type:"FeatureCollection", features:[ { geometry:{ coordinates:[lon,lat] }, properties:{ mmsi, sog, cog, ... } } ] }
-    const feats=d.features||[];
-    const B=SEA_BBOX;
-
-    lastSea=feats
-      .filter(f=>{
-        const [lo,la]=f.geometry?.coordinates||[];
-        return typeof la==="number"&&typeof lo==="number"&&
-               la>=B.lamin&&la<=B.lamax&&lo>=B.lomin&&lo<=B.lomax;
-      })
-      .map(f=>{
-        const [lo,la]=f.geometry.coordinates;
-        const p=f.properties||{};
-        return {
-          mmsi:    p.mmsi,
-          name:    p.name||("MMSI "+p.mmsi),
-          lat:     la,
-          lon:     lo,
-          sog:     p.sog,          // nodi
-          cog:     p.cog,          // gradi
-          shipType:p.shipType||0,
-          navStatus:p.navStat||"—",
-          country: p.destination||"—"
-        };
+    const res=await fetch("https://meri.digitraffic.fi/api/v1/locations/latest",
+      {signal:AbortSignal.timeout(7000)});
+    if(res.ok){
+      const d=await res.json();
+      const feats=(d.features||[]).filter(f=>{
+        const[lo,la]=f.geometry?.coordinates||[];
+        return la>=B.lamin&&la<=B.lamax&&lo>=B.lomin&&lo<=B.lomax;
       });
-
-    renderSea();
-    st.textContent=`✓ ${lastSea.length} navi · ${new Date().toLocaleTimeString()}`;
-  }catch(e){
-    st.textContent="✗ Errore navi: "+e.message;
-    console.error(e);
-    // Fallback: demo mode con 5 navi simulate nel Mediterraneo
-    if(lastSea.length===0){
-      lastSea=[
-        {mmsi:"247123456",name:"AURORA",lat:43.8,lon:7.8,sog:12,cog:120,shipType:70,navStatus:"In rotta",country:"Italy"},
-        {mmsi:"247234567",name:"POSEIDON",lat:44.1,lon:8.3,sog:8,cog:200,shipType:80,navStatus:"In rotta",country:"Italy"},
-        {mmsi:"247345678",name:"MSC ROMA",lat:43.5,lon:9.1,sog:18,cog:45,shipType:71,navStatus:"In rotta",country:"Italy"},
-        {mmsi:"247456789",name:"TIRRENIA",lat:42.0,lon:11.5,sog:15,cog:310,shipType:60,navStatus:"In rotta",country:"Italy"},
-        {mmsi:"247567890",name:"MARINA",lat:44.4,lon:8.9,sog:5,cog:90,shipType:35,navStatus:"In porto",country:"Italy"},
-      ];
-      renderSea();
-      st.textContent="⚠ Dati demo (API AIS temporaneamente non disponibile)";
+      if(feats.length>0){
+        lastSea=feats.map(f=>{
+          const[lo,la]=f.geometry.coordinates,p=f.properties||{};
+          return{mmsi:p.mmsi,name:p.name||("MMSI "+p.mmsi),
+                 lat:la,lon:lo,sog:p.sog,cog:p.cog,
+                 shipType:p.shipType||0,navStatus:p.navStat||"—",country:"—"};
+        });
+        renderSea();
+        st.textContent=`✓ ${lastSea.length} navi (AIS live) · ${new Date().toLocaleTimeString()}`;
+        return;
+      }
     }
+  }catch(e){console.warn("Digitraffic:",e.message)}
+
+  // ── TIER 2: AISStream WebSocket (se hai key) ──
+  if(AISSTREAM_KEY){
+    try{
+      st.textContent="Connessione AIS WebSocket…";
+      const ships={};
+      await new Promise((resolve,reject)=>{
+        const ws=new WebSocket("wss://stream.aisstream.io/v0/stream");
+        const t=setTimeout(()=>{ws.close();resolve()},8000);
+        ws.onopen=()=>ws.send(JSON.stringify({
+          APIKey:AISSTREAM_KEY,
+          BoundingBoxes:[[[B.lamin,B.lomin],[B.lamax,B.lomax]]],
+          FilterMessageTypes:["PositionReport","ShipStaticData"]
+        }));
+        ws.onmessage=ev=>{
+          try{
+            const msg=JSON.parse(ev.data),mmsi=msg?.MetaData?.MMSI;
+            if(!mmsi)return;
+            if(!ships[mmsi])ships[mmsi]={mmsi};
+            if(msg.MessageType==="PositionReport"){
+              const p=msg.Message.PositionReport;
+              Object.assign(ships[mmsi],{lat:p.Latitude,lon:p.Longitude,sog:p.Sog,cog:p.Cog,navStatus:p.NavigationalStatus||"—"});
+            }
+            if(msg.MessageType==="ShipStaticData"){
+              const p=msg.Message.ShipStaticData;
+              ships[mmsi].name=(p.Name||"").trim();ships[mmsi].shipType=p.Type||0;
+            }
+            if(Object.keys(ships).length>=80){clearTimeout(t);ws.close();resolve()}
+          }catch(_){}
+        };
+        ws.onerror=()=>{clearTimeout(t);reject(new Error("WS error"))};
+        ws.onclose=()=>{clearTimeout(t);resolve()};
+      });
+      const arr=Object.values(ships).filter(s=>typeof s.lat==="number"&&!isNaN(s.lat));
+      if(arr.length>0){
+        lastSea=arr;renderSea();
+        st.textContent=`✓ ${lastSea.length} navi (AISStream) · ${new Date().toLocaleTimeString()}`;
+        return;
+      }
+    }catch(e){console.warn("AISStream:",e.message)}
   }
+
+  // ── TIER 3: Demo mode — navi verosimili nel Mediterraneo ──
+  st.textContent="⚠ API AIS non disponibili — visualizzazione demo";
+  lastSea=[
+    {mmsi:"247100001",name:"MSC ROMA",       lat:43.82,lon:7.77, sog:16,cog:105,shipType:71,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100002",name:"COSTA SMERALDA", lat:43.50,lon:9.10, sog:18,cog:210,shipType:60,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100003",name:"GRIMALDI LINES", lat:44.10,lon:8.35, sog:14,cog:185,shipType:70,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100004",name:"TIRRENIA E.",    lat:42.10,lon:11.50,sog:15,cog:315,shipType:60,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100005",name:"ENI TANKER 1",   lat:43.20,lon:13.20,sog:10,cog:270,shipType:80,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"636015001",name:"MAERSK TARANTO", lat:40.42,lon:17.22,sog:0, cog:0,  shipType:70,navStatus:"In porto",   country:"Denmark"},
+    {mmsi:"248100001",name:"VENEZIA CARGO",  lat:45.35,lon:12.35,sog:5, cog:90, shipType:70,navStatus:"In porto",   country:"Italy"},
+    {mmsi:"247900001",name:"G.COSTIERA CP",  lat:44.40,lon:8.92, sog:22,cog:45, shipType:35,navStatus:"In servizio",country:"Italy"},
+    {mmsi:"247100008",name:"BULK SICILIA",   lat:38.10,lon:15.60,sog:8, cog:330,shipType:70,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"247100009",name:"ADRIATIC FERRY", lat:41.63,lon:16.50,sog:20,cog:120,shipType:60,navStatus:"In rotta",   country:"Italy"},
+    {mmsi:"229100001",name:"MSC GENOVA",     lat:44.25,lon:8.55, sog:12,cog:160,shipType:71,navStatus:"In rotta",   country:"Malta"},
+    {mmsi:"247100011",name:"LIVORNO PORT",   lat:43.55,lon:10.30,sog:0, cog:0,  shipType:70,navStatus:"In porto",   country:"Italy"},
+    {mmsi:"247100012",name:"GNV AZZURRA",    lat:43.10,lon:9.50, sog:17,cog:190,shipType:60,navStatus:"In rotta",   country:"Italy"},
+  ];
+  renderSea();
 }
 
-// ══════════════════════════════════════════════════
-// VENTO — Open-Meteo con griglia reale 6x6
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// VENTO — Open-Meteo griglia reale, formato corretto leaflet-velocity
+// Il formato richiesto: nx*ny valori, riga per riga da nord a sud, ovest→est [web:71][web:94]
+// ══════════════════════════════════════════════════════════
 async function fetchAndShowWind(){
-  const st=document.getElementById("status");
+  const st=$("status");
   try{
-    st.textContent="Caricamento dati vento…";
-    if(windLayer){ map.removeLayer(windLayer); windLayer=null; }
+    if(windLayer){map.removeLayer(windLayer);windLayer=null}
+    st.textContent="💨 Caricamento vento…";
 
-    // Griglia 6x6 punti sull'area Nord Italia
-    const lats=[44.0,44.8,45.6,46.4,47.2,48.0];
-    const lons=[5.5, 6.8, 8.1, 9.4,10.7,12.0];
-    const latStr=lats.join(",");
-    const lonStr=lons.join(",");
-
-    const url=`https://api.open-meteo.com/v1/forecast?latitude=${latStr}&longitude=${lonStr}&hourly=windspeed_10m,winddirection_10m&forecast_days=1&timezone=Europe%2FRome&timeformat=unixtime`;
-    const res=await fetch(url);
-    if(!res.ok) throw new Error("Open-Meteo HTTP "+res.status);
-    const data=await res.json();
-
-    // Open-Meteo con più lat/lon restituisce array
-    const results=Array.isArray(data)?data:[data];
-
-    const now=Math.floor(Date.now()/1000);
-    const uData=[], vData=[];
-
-    results.forEach(loc=>{
-      const times=loc.hourly.time;
-      let idx=times.findIndex(t=>t>=now);
-      if(idx<0) idx=0;
-      const spd=loc.hourly.windspeed_10m[idx]/3.6; // km/h → m/s
-      const dir=(loc.hourly.winddirection_10m[idx]+180)*Math.PI/180;
-      uData.push(spd*Math.sin(dir));
-      vData.push(spd*Math.cos(dir));
-    });
-
-    // Costruisce griglia NX=6, NY=6 da lomin a lomax
-    const nx=6, ny=6;
-    const lo1=lons[0], lo2=lons[nx-1];
-    const la1=lats[ny-1], la2=lats[0];
+    // Griglia regolare 10×8 = 80 punti su tutto il Nord/Centro Italia + Costa
+    // nx=10 (est-ovest), ny=8 (nord-sud)
+    const nx=10, ny=8;
+    const lo1=5.0, lo2=18.0;  // longitudine min/max
+    const la1=48.0, la2=37.0; // latitudine: la1=nord, la2=sud
     const dx=(lo2-lo1)/(nx-1);
-    const dy=(lats[0]-lats[ny-1])/(ny-1);
+    const dy=(la1-la2)/(ny-1);
 
-    // leaflet-velocity: i dati devono essere disposti da (la1_nord, lo1_ovest) → riga per riga verso est, poi verso sud
-    // Mappiamo i risultati nella griglia
-    const uGrid=[], vGrid=[];
-    for(let j=ny-1;j>=0;j--){
+    // Costruiamo array di lat/lon per la richiesta multipla Open-Meteo
+    const lats=[],lons=[];
+    for(let j=0;j<ny;j++){
       for(let i=0;i<nx;i++){
-        const idx=j*nx+i;
-        uGrid.push(uData[idx]||0);
-        vGrid.push(vData[idx]||0);
+        lats.push((la1 - j*dy).toFixed(2));
+        lons.push((lo1 + i*dx).toFixed(2));
       }
     }
 
-    const windJson=[
-      {
-        header:{
-          parameterUnit:"m.s-1", parameterNumber:2, parameterNumberName:"eastward_wind",
-          parameterCategory:2, nx, ny,
-          lo1, lo2, la1:lats[0], la2:lats[ny-1],
-          dx, dy,
-          refTime:"2024-01-01 00:00:00"
-        },
-        data: uGrid
-      },
-      {
-        header:{
-          parameterUnit:"m.s-1", parameterNumber:3, parameterNumberName:"northward_wind",
-          parameterCategory:2, nx, ny,
-          lo1, lo2, la1:lats[0], la2:lats[ny-1],
-          dx, dy,
-          refTime:"2024-01-01 00:00:00"
-        },
-        data: vGrid
-      }
-    ];
+    // Open-Meteo API con coordinate multiple (supportato ufficialmente) [web:118][web:123]
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(",")}&longitude=${lons.join(",")}&hourly=wind_speed_10m,wind_direction_10m&forecast_days=1&timezone=UTC&timeformat=unixtime`;
+    const res=await fetch(url);
+    if(!res.ok)throw new Error("Open-Meteo HTTP "+res.status);
+    const raw=await res.json();
+
+    // Raw può essere array (più location) o singolo oggetto
+    const results=Array.isArray(raw)?raw:[raw];
+    const now=Math.floor(Date.now()/1000);
+
+    const uArr=[],vArr=[];
+    results.forEach(loc=>{
+      const times=loc.hourly?.time||[];
+      let idx=times.findIndex(t=>t>=now);
+      if(idx<0)idx=0;
+      const spd=(loc.hourly?.wind_speed_10m?.[idx]||0)/3.6; // km/h→m/s
+      const dir=loc.hourly?.wind_direction_10m?.[idx]||0;   // gradi meteorologici (da dove viene)
+      // componenti U (est) e V (nord)
+      // dir meteorologico: vento da nord=0°, da est=90°
+      // U = -speed * sin(dir_rad)  (positivo verso est)
+      // V = -speed * cos(dir_rad)  (positivo verso nord)
+      const rad=dir*Math.PI/180;
+      uArr.push(-(spd*Math.sin(rad)));
+      vArr.push(-(spd*Math.cos(rad)));
+    });
+
+    // Pad se Open-Meteo ha restituito meno punti del previsto
+    while(uArr.length<nx*ny){uArr.push(0);vArr.push(0)}
+
+    // Header obbligatorio per leaflet-velocity [web:71][web:94][web:116]
+    const header={
+      parameterCategory:2,
+      nx, ny,
+      lo1, lo2,
+      la1,  // latitudine NORD (più alta)
+      la2,  // latitudine SUD (più bassa)
+      dx,
+      dy,
+      refTime:new Date().toISOString()
+    };
 
     windLayer=L.velocityLayer({
       displayValues:true,
       displayOptions:{
         velocityType:"Vento",
         displayPosition:"bottomleft",
-        displayEmptyString:"Nessun dato vento",
-        angleConvention:"bearingCCW",
+        displayEmptyString:"Nessun dato",
+        angleConvention:"bearingCW",    // bearingCW = da dove viene (standard meteorologico)
         speedUnit:"k/h"
       },
-      data: windJson,
-      maxVelocity:25,
-      velocityScale:0.008,
-      colorScale:["#b3f0ff","#00cfff","#0090ff","#0040e0","#7c4dff"],
-      opacity:0.9
+      data:[
+        {header:{...header,parameterNumber:2,parameterNumberName:"eastward_wind"},  data:uArr},
+        {header:{...header,parameterNumber:3,parameterNumberName:"northward_wind"}, data:vArr}
+      ],
+      maxVelocity:20,
+      minVelocity:0,
+      velocityScale:0.006,   // densità particelle
+      colorScale:[
+        "#e0f7ff",  // quasi fermo — azzurro chiaro
+        "#7ecfff",
+        "#00aaff",
+        "#0066ff",
+        "#a855f7",  // forte — viola
+        "#e040fb"   // molto forte — magenta
+      ],
+      opacity:0.92,
+      particleAge:90,
+      particleMultiplier:1/200
     });
     map.addLayer(windLayer);
 
-    const avgSpd=(uData.reduce((a,b)=>a+b,0)/uData.length);
-    const avgKmh=(Math.abs(avgSpd)*3.6).toFixed(0);
-    st.textContent=`💨 Vento attivo ~${avgKmh} km/h · ${new Date().toLocaleTimeString()}`;
+    const avgMs=Math.sqrt(uArr.reduce((a,b)=>a+b*b,0)/uArr.length);
+    st.textContent=`💨 Vento attivo ~${(avgMs*3.6).toFixed(0)} km/h medio · ${new Date().toLocaleTimeString()}`;
   }catch(e){
-    console.error("Wind error:",e);
-    st.textContent="✗ Errore vento: "+e.message;
-    document.getElementById("btn-wind").className="mode-btn";
+    console.error("Errore vento:",e);
+    st.textContent="✗ Errore caricamento vento: "+e.message;
+    $("btn-wind").className="btn";
     windOn=false;
   }
 }
 
 function toggleWind(){
   windOn=!windOn;
-  document.getElementById("btn-wind").className="mode-btn"+(windOn?" wind-on":"");
+  $("btn-wind").className="btn"+(windOn?" wind-on":"");
   if(windOn) fetchAndShowWind();
-  else{ if(windLayer){ map.removeLayer(windLayer); windLayer=null; } document.getElementById("status").textContent="💨 Vento disattivato."; }
+  else{
+    if(windLayer){map.removeLayer(windLayer);windLayer=null}
+    $("status").textContent="💨 Vento disattivato.";
+  }
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // FILTRI
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 function buildFilters(){
-  const fg=document.getElementById("fg");
+  const fg=$("fg");
   if(mode==="air"){
-    document.getElementById("sb-title").textContent="Voli area locale";
+    $("sb-title").textContent="Voli area locale";
     fg.innerHTML=`
-      <div class="fb on"    data-k="civil"  onclick="taf(this)">✈ Civili</div>
-      <div class="fb on-mil"data-k="mil"    onclick="taf(this)">🪖 Militari</div>
-      <div class="fb on"    data-k="fly"    onclick="taf(this)">🟢 In volo</div>
-      <div class="fb on-gnd"data-k="gnd"    onclick="taf(this)">🔴 A terra</div>
-      <div class="fb"       data-k="heavy"  onclick="taf(this)">🛫 Solo grandi</div>`;
-  } else {
-    document.getElementById("sb-title").textContent="Navi area locale";
+      <div class="fb on"     data-k="civil"  onclick="taf(this)">✈ Civili</div>
+      <div class="fb on-mil" data-k="mil"    onclick="taf(this)">🪖 Militari</div>
+      <div class="fb on"     data-k="fly"    onclick="taf(this)">🟢 In volo</div>
+      <div class="fb on-gnd" data-k="gnd"    onclick="taf(this)">🔴 A terra</div>
+      <div class="fb"        data-k="heavy"  onclick="taf(this)">🛫 Solo grandi</div>`;
+  }else{
+    $("sb-title").textContent="Navi area locale";
     fg.innerHTML=`
       <div class="fb on-sea" data-k="cargo"     onclick="tsf(this)">📦 Cargo</div>
       <div class="fb on-sea" data-k="tanker"    onclick="tsf(this)">🛢 Tanker</div>
@@ -722,42 +741,41 @@ function buildFilters(){
       <div class="fb on"     data-k="other"     onclick="tsf(this)">🔹 Altro</div>`;
   }
 }
-
 function taf(btn){
-  const k=btn.dataset.k; airFilters[k]=!airFilters[k];
-  btn.className="fb"+(airFilters[k]?(k==="mil"?" on-mil":k==="gnd"?" on-gnd":" on"):"");
+  const k=btn.dataset.k;airF[k]=!airF[k];
+  btn.className="fb"+(airF[k]?(k==="mil"?" on-mil":k==="gnd"?" on-gnd":" on"):"");
   renderAir();
 }
 function tsf(btn){
-  const k=btn.dataset.k; seaFilters[k]=!seaFilters[k];
-  btn.className="fb"+(seaFilters[k]?(k==="military"?" on-mil":" on-sea"):"");
+  const k=btn.dataset.k;seaF[k]=!seaF[k];
+  btn.className="fb"+(seaF[k]?(k==="military"?" on-mil":" on-sea"):"");
   renderSea();
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // SWITCH MODALITÀ
-// ══════════════════════════════════════════════════
-let seaTimer=null;
+// ══════════════════════════════════════════════════════════
 function setMode(m){
   mode=m;
-  document.getElementById("btn-air").className="mode-btn"+(m==="air"?" air-on":"");
-  document.getElementById("btn-sea").className="mode-btn"+(m==="sea"?" sea-on":"");
-  cluster.clearLayers(); trailLayer.clearLayers(); closeDetail();
-  clearInterval(airTimer); clearInterval(seaTimer);
+  $("btn-air").className="btn"+(m==="air"?" air-on":"");
+  $("btn-sea").className="btn"+(m==="sea"?" sea-on":"");
+  cluster.clearLayers();trailLayer.clearLayers();closeDetail();
+  clearInterval(airTimer);clearInterval(seaTimer);
   buildFilters();
   if(m==="air"){
+    map.setView([45.07,7.68],7,{animate:true});
     fetchAir();
     airTimer=setInterval(fetchAir,20000);
-  } else {
-    map.setView([42,12],6);
+  }else{
+    map.setView([42,12],6,{animate:true});
     fetchSea();
     seaTimer=setInterval(fetchSea,30000);
   }
 }
 
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // AVVIO
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 initMap();
 buildFilters();
 fetchAir();
