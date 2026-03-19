@@ -25,15 +25,12 @@ html{height:100%;height:-webkit-fill-available}
 body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;background:#09090f;color:#eee;font-family:-apple-system,system-ui,sans-serif;overscroll-behavior:none}
 :root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--hh:52px;--nh:56px}
 
-/* HEADER */
 #header{position:fixed;top:0;left:0;right:0;padding-top:var(--sat);background:rgba(10,10,20,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06);z-index:3000;display:flex;align-items:flex-end;padding-left:14px;padding-right:14px;padding-bottom:10px;min-height:calc(var(--sat) + var(--hh))}
 .title{font-size:14px;font-weight:800;letter-spacing:.02em;flex:1}
-#status{font-size:10px;color:#3a3a50;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw;text-align:right}
+#status{font-size:10px;color:#3a3a50;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:58vw;text-align:right}
 
-/* MAPPA */
 #map{position:fixed;top:calc(var(--sat) + var(--hh));left:0;right:0;bottom:calc(var(--sab) + var(--nh));z-index:1}
 
-/* BOTTOM NAV */
 #bottom-nav{position:fixed;bottom:0;left:0;right:0;padding-bottom:var(--sab);background:rgba(10,10,20,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.06);z-index:3000;display:flex;align-items:flex-start;justify-content:space-around;padding-top:6px;min-height:calc(var(--sab) + var(--nh))}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;cursor:pointer;border-radius:10px;user-select:none;min-height:44px;transition:opacity .15s}
 .nb:active{opacity:.5}
@@ -45,7 +42,6 @@ body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;back
 .nb.wind-on .nb-lbl,.nb.wind-on .nb-ico{color:#a855f7}
 .nb.list-on .nb-lbl{color:#eee}
 
-/* INSTALL BANNER */
 #install-banner{position:fixed;bottom:calc(var(--sab) + var(--nh) + 12px);left:12px;right:12px;background:rgba(15,15,30,.97);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px;z-index:9000;display:none;flex-direction:row;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);animation:slideUp .4s cubic-bezier(.4,0,.2,1)}
 #install-banner.show{display:flex}
 @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -57,11 +53,9 @@ body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;back
 #ib-close:active{background:rgba(255,255,255,.14)}
 #ib-arrow{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:10px solid rgba(15,15,30,.97)}
 
-/* OFFLINE TOAST */
 #offline-toast{position:fixed;top:calc(var(--sat) + var(--hh) + 10px);left:50%;transform:translateX(-50%);background:rgba(255,80,80,.15);border:1px solid rgba(255,80,80,.3);color:#ff8080;font-size:11px;font-weight:600;padding:6px 14px;border-radius:99px;z-index:4000;display:none;white-space:nowrap;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #offline-toast.show{display:block}
 
-/* SHEET */
 #sheet{position:fixed;left:0;right:0;bottom:calc(var(--sab) + var(--nh));height:58vh;background:rgba(9,9,18,.98);border-top:1px solid rgba(255,255,255,.07);border-radius:20px 20px 0 0;z-index:2000;transform:translateY(100%);-webkit-transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden;will-change:transform}
 #sheet.open{transform:translateY(0);-webkit-transform:translateY(0)}
 .sh-handle{width:38px;height:4px;background:#252535;border-radius:2px;margin:12px auto 8px;flex-shrink:0}
@@ -90,9 +84,9 @@ body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;back
 .b-g{background:rgba(255,80,80,.1);color:#ff5050}
 .b-m{background:rgba(76,175,80,.12);color:#4caf50}
 .b-s{background:rgba(0,180,216,.12);color:#00b4d8}
+.b-demo{background:rgba(255,180,0,.1);color:#ffb400}
 .empty{font-size:12px;color:#252535;padding:20px 0;text-align:center;line-height:1.8}
 
-/* DETAIL */
 #detail{position:fixed;left:0;right:0;bottom:calc(var(--sab) + var(--nh));height:72vh;background:rgba(9,9,18,.99);border-top:1px solid rgba(255,255,255,.07);border-radius:22px 22px 0 0;z-index:3500;transform:translateY(110%);-webkit-transform:translateY(110%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden;will-change:transform;pointer-events:none}
 #detail.show{transform:translateY(0);-webkit-transform:translateY(0);pointer-events:auto}
 .det-handle{width:38px;height:4px;background:#252535;border-radius:2px;margin:12px auto 0;flex-shrink:0}
@@ -114,6 +108,7 @@ body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;back
 .t-mil{background:rgba(76,175,80,.15);color:#4caf50}
 .t-civ{background:rgba(100,160,255,.1);color:#64a0ff}
 .t-sea{background:rgba(0,180,216,.12);color:#00b4d8}
+.t-demo{background:rgba(255,180,0,.1);color:#ffb400}
 #det-desc{font-size:12px;color:#454560;line-height:1.7;margin-bottom:14px;font-style:italic;border-left:3px solid #181830;padding-left:10px}
 .det-row{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .det-row:last-of-type{border-bottom:none}
@@ -121,11 +116,9 @@ body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;back
 .det-val{font-size:14px;color:#ddd;font-weight:600;flex:1}
 #det-credit{font-size:10px;color:#1e1e2e;margin-top:18px;text-align:right}
 
-/* OVERLAY */
 #overlay{position:fixed;inset:0;z-index:3400;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s}
 #overlay.show{opacity:1;pointer-events:auto}
 
-/* CLUSTER */
 .marker-cluster-small{background:rgba(255,213,0,.2)}
 .marker-cluster-small div{background:rgba(255,213,0,.9);color:#000;font-weight:700}
 .marker-cluster-medium{background:rgba(255,170,0,.2)}
@@ -178,12 +171,12 @@ body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;back
       <div id="det-id">—</div>
       <div id="det-tags"></div>
       <div id="det-desc"></div>
-      <div class="det-row"><span class="det-lbl">Paese</span>   <span class="det-val" id="d-c">—</span></div>
-      <div class="det-row" id="row-alt"><span class="det-lbl">Quota</span><span class="det-val" id="d-a">—</span></div>
-      <div class="det-row"><span class="det-lbl">Velocità</span><span class="det-val" id="d-s">—</span></div>
-      <div class="det-row"><span class="det-lbl">Prua</span>    <span class="det-val" id="d-h">—</span></div>
+      <div class="det-row"><span class="det-lbl">Paese</span>    <span class="det-val" id="d-c">—</span></div>
+      <div class="det-row" id="row-alt"><span class="det-lbl">Quota</span> <span class="det-val" id="d-a">—</span></div>
+      <div class="det-row"><span class="det-lbl">Velocità</span> <span class="det-val" id="d-s">—</span></div>
+      <div class="det-row"><span class="det-lbl">Prua</span>     <span class="det-val" id="d-h">—</span></div>
       <div class="det-row"><span class="det-lbl">Posizione</span><span class="det-val" id="d-p">—</span></div>
-      <div class="det-row"><span class="det-lbl">Stato</span>   <span class="det-val" id="d-g">—</span></div>
+      <div class="det-row"><span class="det-lbl">Stato</span>    <span class="det-val" id="d-g">—</span></div>
       <div id="det-credit">Foto: Planespotters.net · Dati: OpenSky / AIS</div>
     </div>
   </div>
@@ -194,8 +187,7 @@ body{width:100vw;height:100vh;height:-webkit-fill-available;overflow:hidden;back
 <script src="https://unpkg.com/leaflet-velocity@2.1.0/dist/leaflet-velocity.js"></script>
 <script>
 // ══════════════════════════════════════════════════════
-// PWA SETUP — icone + manifest via Blob (NO service worker)
-// Il SW da Blob URL rompe i fetch su iOS Safari [web:155]
+// PWA — icone canvas + manifest (NO service worker)
 // ══════════════════════════════════════════════════════
 function makeIcon(size){
   return new Promise(resolve=>{
@@ -219,24 +211,29 @@ function makeIcon(size){
 async function setupPWA(){
   try{
     const [p512,p192,p180,p152,p120]=await Promise.all([512,192,180,152,120].map(makeIcon));
-    // Apple touch icons
-    const set=(id,href)=>{if(href)document.getElementById(id).href=href};
+    const set=(id,href)=>{if(href&&document.getElementById(id))document.getElementById(id).href=href};
     set("ati-180",p180); set("ati-152",p152); set("ati-120",p120); set("icon-192",p192);
-    // Manifest
-    const m={name:"FlyRadar — Traffico in tempo reale",short_name:"FlyRadar",
-      description:"Voli, navi e vento in tempo reale",start_url:".",
-      display:"standalone",orientation:"any",
-      background_color:"#09090f",theme_color:"#09090f",lang:"it",
-      icons:[{src:p192,sizes:"192x192",type:"image/png",purpose:"any maskable"},
-             {src:p512,sizes:"512x512",type:"image/png",purpose:"any maskable"}]};
+    // ✅ start_url = path reale, NON blob URL
+    const manifest={
+      name:"FlyRadar — Traffico in tempo reale",
+      short_name:"FlyRadar",
+      description:"Voli, navi e vento in tempo reale",
+      start_url: location.pathname||"/",
+      display:"standalone",
+      orientation:"any",
+      background_color:"#09090f",
+      theme_color:"#09090f",
+      lang:"it",
+      icons:[
+        {src:p192,sizes:"192x192",type:"image/png",purpose:"any maskable"},
+        {src:p512,sizes:"512x512",type:"image/png",purpose:"any maskable"}
+      ]
+    };
     document.getElementById("manifest-link").href=
-      URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/manifest+json"}));
+      URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));
   }catch(e){console.warn("PWA setup:",e)}
 }
 
-// ══════════════════════════════════════════════════════
-// BANNER INSTALLA (iOS standalone detection)
-// ══════════════════════════════════════════════════════
 function checkBanner(){
   const iOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
   const standalone=window.navigator.standalone===true||window.matchMedia("(display-mode:standalone)").matches;
@@ -248,9 +245,6 @@ function checkBanner(){
 }
 function dismissBanner(){document.getElementById("install-banner").classList.remove("show");localStorage.setItem("ib-off","1")}
 
-// ══════════════════════════════════════════════════════
-// NETWORK STATUS
-// ══════════════════════════════════════════════════════
 function setupNetwork(){
   const t=document.getElementById("offline-toast");
   const upd=()=>t.classList.toggle("show",!navigator.onLine);
@@ -266,12 +260,43 @@ const SEA_BBOX ={lamin:36.0,lamax:48.0,lomin:4.0,lomax:20.0};
 const AISSTREAM_KEY="";
 
 // ══════════════════════════════════════════════════════
+// DEMO AEREI — usati quando OpenSky è in rate limit
+// Formato: array OpenSky [icao24,callsign,country,_,_,lon,lat,alt,onGround,speed,track,...]
+// ══════════════════════════════════════════════════════
+const DEMO_AIR_RAW=[
+  {ic:"3320e2",cs:"RYR4472", co:"Ireland", lat:45.20,lon:9.10, alt:9800, sp:230,tr:265,gnd:false,mil:false},
+  {ic:"3c6692",cs:"EZY2351", co:"Germany", lat:44.80,lon:8.50, alt:11200,sp:245,tr:80, gnd:false,mil:false},
+  {ic:"300e4a",cs:"AZA610",  co:"Italy",   lat:45.50,lon:10.20,alt:8500, sp:210,tr:190,gnd:false,mil:false},
+  {ic:"3c4b25",cs:"DLH944",  co:"Germany", lat:46.10,lon:11.30,alt:12500,sp:260,tr:230,gnd:false,mil:false},
+  {ic:"344687",cs:"VOL1832", co:"Spain",   lat:44.10,lon:7.80, alt:9200, sp:220,tr:130,gnd:false,mil:false},
+  {ic:"4ca7b9",cs:"RYR58LH", co:"Ireland", lat:45.80,lon:12.10,alt:10700,sp:238,tr:290,gnd:false,mil:false},
+  {ic:"471fd1",cs:"WZZ3412", co:"Hungary", lat:43.80,lon:10.50,alt:11000,sp:250,tr:45, gnd:false,mil:false},
+  {ic:"400944",cs:"BAW552",  co:"UK",      lat:46.30,lon:9.50, alt:13000,sp:270,tr:200,gnd:false,mil:false},
+  {ic:"300143",cs:"AMI113",  co:"Italy",   lat:45.05,lon:7.65, alt:0,    sp:0,  tr:0,  gnd:true, mil:true},
+  {ic:"3950c2",cs:"AFR1974", co:"France",  lat:44.40,lon:8.10, alt:10200,sp:235,tr:100,gnd:false,mil:false},
+  {ic:"3c6400",cs:"EZY45EX", co:"Germany", lat:43.70,lon:11.20,alt:9600, sp:225,tr:320,gnd:false,mil:false},
+  {ic:"344800",cs:"VLG6812", co:"Spain",   lat:45.60,lon:13.40,alt:8800, sp:215,tr:265,gnd:false,mil:false},
+  {ic:"4b1820",cs:"SWR198",  co:"Swiss",   lat:46.50,lon:8.80, alt:12000,sp:255,tr:180,gnd:false,mil:false},
+  {ic:"ae1234",cs:"RCH456",  co:"USA",     lat:44.00,lon:9.00, alt:11500,sp:280,tr:310,gnd:false,mil:true},
+  {ic:"3c75a0",cs:"DLH1506", co:"Germany", lat:45.90,lon:10.80,alt:11800,sp:262,tr:220,gnd:false,mil:false},
+  {ic:"4008f3",cs:"BAW234",  co:"UK",      lat:46.80,lon:7.20, alt:12200,sp:268,tr:190,gnd:false,mil:false},
+  {ic:"471ae2",cs:"WZZ1842", co:"Hungary", lat:44.60,lon:12.90,alt:10100,sp:242,tr:55, gnd:false,mil:false},
+  {ic:"344211",cs:"VLG3304", co:"Spain",   lat:43.50,lon:6.90, alt:9400, sp:218,tr:140,gnd:false,mil:false},
+];
+// Converti nel formato array OpenSky
+function demoStates(){
+  return DEMO_AIR_RAW.map(v=>[v.ic,v.cs,v.co,null,null,v.lon,v.lat,v.alt,v.gnd,v.sp,v.tr,null,null,null,null,null,null,null]);
+}
+
+// ══════════════════════════════════════════════════════
 // STATO
 // ══════════════════════════════════════════════════════
 let map,cluster,trailLayer,windLayer;
 let lastAir=[],lastSea=[];
+let isDemo=false; // flag per sapere se stiamo usando dati demo
 let mode="air",windOn=false,sheetOpen=false,detailOn=false;
 let tAir=null,tSea=null;
+let airRateLimit=false,airRateLimitUntil=0;
 
 const MIL_PFX=["ae","a1","a2","a3","a4","a5","43c","43d","43e","43f","3b7","3b8","3b9","3ba","3bb","43b","43a","4240","4241","4242","4243","4244","4245","300","301","302","500","501"];
 const MIL_CS =["RCH","DUKE","REACH","JAKE","FURY","VIPER","GHOST","EAGLE","VENUS","MARS","ATLAS","MAGMA","TOPGUN","KNIFE","IRON","STEEL","AMI","IAM","GAF","RAF","USAF","NAVY"];
@@ -279,9 +304,6 @@ const AL_DESC={RYR:"Ryanair — low-cost irlandese.",EZY:"easyJet — low-cost b
 const airF={civil:true,mil:true,fly:true,gnd:false,heavy:false};
 const seaF={cargo:true,tanker:true,passenger:true,military:true,other:true};
 
-// ══════════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════════
 const ms2k=v=>typeof v==="number"?(v*3.6).toFixed(0)+" km/h":"—";
 const m2ft =v=>typeof v==="number"?(v*3.28084).toFixed(0)+" ft":"—";
 const kn2k =v=>typeof v==="number"?(v*1.852).toFixed(0)+" km/h":"—";
@@ -319,17 +341,11 @@ function initSwipe(el,fn,thr){
   h.addEventListener("touchend",()=>{if(!drag)return;drag=false;const d=cY-sY;el.style.transition="";el.style.webkitTransition="";el.style.transform="";el.style.webkitTransform="";if(d>thr)fn()},{passive:true});
 }
 
-// ══════════════════════════════════════════════════════
-// SHEET / DETAIL
-// ══════════════════════════════════════════════════════
 function toggleSheet(){sheetOpen=!sheetOpen;$("sheet").classList.toggle("open",sheetOpen);$("nav-list").classList.toggle("list-on",sheetOpen);if(sheetOpen)closeDetail()}
 function closeSheet(){sheetOpen=false;$("sheet").classList.remove("open");$("nav-list").classList.remove("list-on")}
 function showDetail(){detailOn=true;$("detail").classList.add("show");$("overlay").classList.add("show");$("det-scroll").scrollTop=0;closeSheet()}
 function closeDetail(){if(!detailOn)return;detailOn=false;$("detail").classList.remove("show");$("overlay").classList.remove("show");$("detail").style.transform="";$("detail").style.webkitTransform=""}
 
-// ══════════════════════════════════════════════════════
-// TRAIL
-// ══════════════════════════════════════════════════════
 function drawTrail(lat,lon,track,spd){
   trailLayer.clearLayers();
   if(typeof lat!=="number"||typeof lon!=="number")return;
@@ -348,48 +364,52 @@ function drawTrail(lat,lon,track,spd){
   pts.slice(1).forEach((p,i)=>L.marker(p,{icon:L.divIcon({className:"",html:`<div style="font-size:10px;font-weight:700;color:#00e5ff;text-shadow:0 0 6px #00e5ff,0 0 2px #000;white-space:nowrap;margin-left:7px">+${steps[i]}min</div>`,iconAnchor:[0,8]})}).addTo(trailLayer));
 }
 
-// ══════════════════════════════════════════════════════
-// ICONE MAPPA
-// ══════════════════════════════════════════════════════
 const planeIcon=(t,mil)=>L.divIcon({className:"",iconSize:[30,30],iconAnchor:[15,15],html:`<div style="width:30px;height:30px;transform:rotate(${t||0}deg);transform-origin:center"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="${mil?"#4caf50":"#ffd500"}" stroke="#000" stroke-width=".5" d="M12 2c-.4 0-.77.24-.92.62L9.2 8.5 4 10.5v1l4.5-.5L11 15l-2.5 2-2 .5v1l3-.3L12 17l2.5 1.2 3 .3v-1l-2-.5L13 15l2.5-4.5L20 11.5v-1L14.8 8.5 12.92 2.62A1 1 0 0 0 12 2z"/></svg></div>`});
 const shipIcon =(t,type)=>L.divIcon({className:"",iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:26px;height:26px;transform:rotate(${t||0}deg);transform-origin:center"><svg viewBox="0 0 24 24" width="26" height="26"><path fill="${type==="Military"?"#4caf50":type==="Tanker"?"#ff9800":type==="Passenger"?"#e040fb":"#00b4d8"}" stroke="#000" stroke-width=".6" d="M12 3L7 10H4L12 22L20 10H17Z"/></svg></div>`});
 
-// ══════════════════════════════════════════════════════
-// FOTO
-// ══════════════════════════════════════════════════════
 function loadAirPhoto(icao){
   const w=$("det-img");w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Caricamento…</span></div>`;
   if(!icao)return;
-  // mode:'cors' esplicito — necessario su alcuni browser/PWA
   fetch(`https://api.planespotters.net/pub/photos/hex/${icao.toLowerCase()}`,{mode:"cors"})
     .then(r=>r.ok?r.json():Promise.reject())
     .then(d=>{
       const ph=d.photos;
-      if(ph&&ph.length){const src=ph[0].thumbnail_large?.src||ph[0].thumbnail?.src;if(src){w.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=ph><span class=ico>✈</span><span>Nessuna foto</span></div>'">${ph[0].photographer?`<div style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.6);padding:2px 8px;border-radius:6px">📷 ${ph[0].photographer}</div>`:""}`;return}}
+      if(ph&&ph.length){
+        const src=ph[0].thumbnail_large?.src||ph[0].thumbnail?.src;
+        if(src){
+          w.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=ph><span class=ico>✈</span><span>Nessuna foto</span></div>'">${ph[0].photographer?`<div style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.6);padding:2px 8px;border-radius:6px">📷 ${ph[0].photographer}</div>`:""}`;
+          return;
+        }
+      }
       w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Nessuna foto</span></div>`;
     }).catch(()=>{w.innerHTML=`<div class="ph"><span class="ico">✈</span><span>Foto non disponibile</span></div>`});
 }
 function loadShipPhoto(mmsi){
   const w=$("det-img");w.innerHTML=`<div class="ph"><span class="ico">⛵</span><span>Caricamento…</span></div>`;
   const url=`https://photos.marinetraffic.com/ais/showphoto.aspx?mmsi=${mmsi}&size=thumb300`;
-  const img=new Image();img.onload=()=>{w.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover"/>`};img.onerror=()=>{w.innerHTML=`<div class="ph"><span class="ico">⛵</span><span>Nessuna foto</span></div>`};img.src=url;
+  const img=new Image();
+  img.onload=()=>{w.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover"/>`};
+  img.onerror=()=>{w.innerHTML=`<div class="ph"><span class="ico">⛵</span><span>Nessuna foto</span></div>`};
+  img.src=url;
 }
 
-// ══════════════════════════════════════════════════════
-// OPEN DETAIL
-// ══════════════════════════════════════════════════════
 function openAirDetail(s){
   const m=isMil(s),g=s[8],cs=(s[1]||"").trim()||"Senza callsign";
-  setT("det-cs",cs);setT("det-id","ICAO24: "+(s[0]||"—").toUpperCase());
+  setT("det-cs",cs);
+  setT("det-id","ICAO24: "+(s[0]||"—").toUpperCase()+(isDemo?" · DEMO":""));
   setT("d-c",s[2]||"—");setT("d-a",m2ft(s[7]));setT("d-s",ms2k(s[9]));
   setT("d-h",typeof s[10]==="number"?s[10].toFixed(0)+"°":"—");
   setT("d-p",(typeof s[6]==="number"&&typeof s[5]==="number")?s[6].toFixed(3)+", "+s[5].toFixed(3):"—");
   setT("d-g",g?"🔴 A terra":"🟢 In volo");
   $("row-alt").style.display="flex";
-  $("det-tags").innerHTML=`<span class="tag ${g?"t-gnd":"t-fly"}">${g?"A terra":"In volo"}</span><span class="tag ${m?"t-mil":"t-civ"}">${m?"Militare":"Civile"}</span>`;
+  $("det-tags").innerHTML=`
+    <span class="tag ${g?"t-gnd":"t-fly"}">${g?"A terra":"In volo"}</span>
+    <span class="tag ${m?"t-mil":"t-civ"}">${m?"Militare":"Civile"}</span>
+    ${isDemo?`<span class="tag t-demo">Demo</span>`:""}`;
   $("det-desc").textContent=airDesc(cs,m);
-  setT("det-credit","Foto: Planespotters.net · Dati: OpenSky");
-  loadAirPhoto(s[0]||"");showDetail();
+  setT("det-credit","Foto: Planespotters.net · Dati: "+(isDemo?"Demo (OpenSky rate limit)":"OpenSky Network"));
+  loadAirPhoto(s[0]||"");
+  showDetail();
 }
 function openSeaDetail(ship){
   const t=sType(ship.shipType||ship.type||0);
@@ -406,7 +426,7 @@ function openSeaDetail(ship){
 }
 
 // ══════════════════════════════════════════════════════
-// RENDER AEREI
+// RENDER
 // ══════════════════════════════════════════════════════
 function renderAir(){
   cluster.clearLayers();trailLayer.clearLayers();
@@ -428,15 +448,21 @@ function renderAir(){
   v.slice(0,150).forEach(s=>{
     const cs=(s[1]||"").trim()||"Senza callsign",g=s[8],m=isMil(s);
     const r=document.createElement("div");r.className="fr";
-    r.innerHTML=`<span class="fr-ico">${m?"🪖":"✈"}</span><div class="fr-info"><div class="fn-row"><span class="fn">${cs}</span><span class="b ${g?"b-g":"b-f"}">${g?"GND":"FLY"}</span>${m?`<span class="b b-m">MIL</span>`:""}</div><div class="fs">${s[2]||"—"} · ${m2ft(s[7])} · ${ms2k(s[9])}</div></div>`;
+    r.innerHTML=`<span class="fr-ico">${m?"🪖":"✈"}</span>
+      <div class="fr-info">
+        <div class="fn-row">
+          <span class="fn">${cs}</span>
+          <span class="b ${g?"b-g":"b-f"}">${g?"GND":"FLY"}</span>
+          ${m?`<span class="b b-m">MIL</span>`:""}
+          ${isDemo?`<span class="b b-demo">DEMO</span>`:""}
+        </div>
+        <div class="fs">${s[2]||"—"} · ${m2ft(s[7])} · ${ms2k(s[9])}</div>
+      </div>`;
     r.onclick=()=>{map.setView([s[6],s[5]],10,{animate:true});drawTrail(s[6],s[5],s[10]||0,s[9]||0);openAirDetail(s)};
     el.appendChild(r);
   });
 }
 
-// ══════════════════════════════════════════════════════
-// RENDER NAVI
-// ══════════════════════════════════════════════════════
 function renderSea(){
   cluster.clearLayers();trailLayer.clearLayers();
   const batch=[];
@@ -456,43 +482,84 @@ function renderSea(){
   v.slice(0,150).forEach(ship=>{
     const t=sType(ship.shipType||ship.type||0),ico=t==="Military"?"🪖":t==="Passenger"?"🚢":t==="Tanker"?"🛢":"📦";
     const r=document.createElement("div");r.className="fr";
-    r.innerHTML=`<span class="fr-ico">${ico}</span><div class="fr-info"><div class="fn-row"><span class="fn">${ship.name||ship.mmsi||"—"}</span><span class="b b-s">${t}</span></div><div class="fs">${ship.country||"—"} · ${kn2k(ship.sog)}</div></div>`;
+    r.innerHTML=`<span class="fr-ico">${ico}</span>
+      <div class="fr-info">
+        <div class="fn-row"><span class="fn">${ship.name||ship.mmsi||"—"}</span><span class="b b-s">${t}</span></div>
+        <div class="fs">${ship.country||"—"} · ${kn2k(ship.sog)}</div>
+      </div>`;
     r.onclick=()=>{map.setView([ship.lat,ship.lon],10,{animate:true});drawTrail(ship.lat,ship.lon,ship.cog||0,(ship.sog||0)*.5144);openSeaDetail(ship)};
     el.appendChild(r);
   });
 }
 
 // ══════════════════════════════════════════════════════
-// FETCH AEREI — mode:'cors' esplicito, timeout 12s
+// FETCH AEREI — con gestione 429 e fallback demo
 // ══════════════════════════════════════════════════════
 async function fetchAir(){
   if(mode!=="air")return;
   const B=AIR_BBOX,st=$("status");
+
+  // Ancora in rate limit → mostra countdown e usa demo
+  if(airRateLimit&&Date.now()<airRateLimitUntil){
+    const secs=Math.ceil((airRateLimitUntil-Date.now())/1000);
+    st.textContent=`⚠ Rate limit OpenSky — riprovo tra ${secs}s`;
+    if(!lastAir.length){isDemo=true;lastAir=demoStates();renderAir()}
+    return;
+  }
+  airRateLimit=false;
+
   try{
     st.textContent="Caricamento voli…";
     const ctrl=new AbortController();
     const tid=setTimeout(()=>ctrl.abort(),12000);
     const res=await fetch(
       `${OPENSKY}?lamin=${B.lamin}&lomin=${B.lomin}&lamax=${B.lamax}&lomax=${B.lomax}`,
-      {mode:"cors",signal:ctrl.signal}
+      {mode:"cors",cache:"no-store",signal:ctrl.signal}
     );
     clearTimeout(tid);
-    if(res.status===429){st.textContent="⚠ Rate limit OpenSky (riprovo…)";return}
+
+    if(res.status===429){
+      // Rate limit: aspetta 60s
+      airRateLimit=true;
+      airRateLimitUntil=Date.now()+60000;
+      st.textContent="⚠ OpenSky rate limit (60s) — visualizzo demo";
+      isDemo=true;
+      lastAir=demoStates();
+      renderAir();
+      return;
+    }
     if(!res.ok)throw new Error("HTTP "+res.status);
+
     const d=await res.json();
-    lastAir=Array.isArray(d.states)?d.states:[];
+    const states=Array.isArray(d.states)?d.states:[];
+
+    if(states.length===0){
+      // Risposta OK ma 0 aerei → mostra demo
+      st.textContent="⚠ Nessun dato da OpenSky — visualizzo demo";
+      isDemo=true;
+      lastAir=demoStates();
+    }else{
+      isDemo=false;
+      lastAir=states;
+      st.textContent=`✓ ${lastAir.length} voli live · ${new Date().toLocaleTimeString()}`;
+    }
     renderAir();
-    st.textContent=`✓ ${lastAir.length} voli · ${new Date().toLocaleTimeString()}`;
+
   }catch(e){
-    if(e.name==="AbortError"){st.textContent="⚠ Timeout OpenSky"}
-    else if(!navigator.onLine){st.textContent="📡 Offline"}
-    else{st.textContent="✗ "+e.message}
-    console.warn("fetchAir:",e);
+    if(e.name==="AbortError"){
+      st.textContent="⚠ Timeout OpenSky — visualizzo demo";
+    }else if(!navigator.onLine){
+      st.textContent="📡 Offline";
+    }else{
+      st.textContent="⚠ OpenSky non raggiungibile — demo";
+    }
+    console.warn("fetchAir:",e.message);
+    if(!lastAir.length){isDemo=true;lastAir=demoStates();renderAir()}
   }
 }
 
 // ══════════════════════════════════════════════════════
-// FETCH NAVI — Digitraffic → AISStream → Demo
+// FETCH NAVI
 // ══════════════════════════════════════════════════════
 async function fetchSea(){
   if(mode!=="sea")return;
@@ -501,7 +568,7 @@ async function fetchSea(){
     st.textContent="Caricamento navi AIS…";
     const ctrl=new AbortController();
     setTimeout(()=>ctrl.abort(),8000);
-    const res=await fetch("https://meri.digitraffic.fi/api/v1/locations/latest",{mode:"cors",signal:ctrl.signal});
+    const res=await fetch("https://meri.digitraffic.fi/api/v1/locations/latest",{mode:"cors",cache:"no-store",signal:ctrl.signal});
     if(res.ok){
       const d=await res.json();
       const feats=(d.features||[]).filter(f=>{const[lo,la]=f.geometry?.coordinates||[];return la>=B.lamin&&la<=B.lamax&&lo>=B.lomin&&lo<=B.lomax});
@@ -527,7 +594,7 @@ async function fetchSea(){
     }catch(e){console.warn(e)}
   }
 
-  // Demo fallback
+  // Demo navi
   st.textContent="⚠ Demo — API navi offline";
   lastSea=[
     {mmsi:"247100001",name:"MSC ROMA",       lat:43.82,lon:7.77, sog:16,cog:105,shipType:71,navStatus:"In rotta",   country:"Italy"},
@@ -580,7 +647,7 @@ async function fetchAndShowWind(){
       opacity:.92,particleAge:90,particleMultiplier:1/200
     });
     map.addLayer(windLayer);
-    st.textContent=`💨 Vento ~${(Math.sqrt(uArr.reduce((a,b)=>a+b*b,0)/uArr.length)*3.6).toFixed(0)} km/h · ${new Date().toLocaleTimeString()}`;
+    st.textContent=`💨 ~${(Math.sqrt(uArr.reduce((a,b)=>a+b*b,0)/uArr.length)*3.6).toFixed(0)} km/h · ${new Date().toLocaleTimeString()}`;
   }catch(e){console.error(e);st.textContent="✗ Errore vento";$("nav-wind").classList.remove("wind-on");windOn=false}
 }
 function toggleWind(){windOn=!windOn;$("nav-wind").classList.toggle("wind-on",windOn);if(windOn)fetchAndShowWind();else{if(windLayer){map.removeLayer(windLayer);windLayer=null}$("status").textContent="💨 Vento disattivato"}}
@@ -592,10 +659,20 @@ function buildFilters(){
   const fg=$("fg");
   if(mode==="air"){
     $("sb-title").textContent="Voli area locale";
-    fg.innerHTML=`<div class="fb on" data-k="civil" onclick="taf(this)">✈ Civili</div><div class="fb on-mil" data-k="mil" onclick="taf(this)">🪖 Militari</div><div class="fb on" data-k="fly" onclick="taf(this)">🟢 In volo</div><div class="fb on-gnd" data-k="gnd" onclick="taf(this)">🔴 A terra</div><div class="fb" data-k="heavy" onclick="taf(this)">🛫 Solo grandi</div>`;
+    fg.innerHTML=`
+      <div class="fb on"     data-k="civil"  onclick="taf(this)">✈ Civili</div>
+      <div class="fb on-mil" data-k="mil"    onclick="taf(this)">🪖 Militari</div>
+      <div class="fb on"     data-k="fly"    onclick="taf(this)">🟢 In volo</div>
+      <div class="fb on-gnd" data-k="gnd"    onclick="taf(this)">🔴 A terra</div>
+      <div class="fb"        data-k="heavy"  onclick="taf(this)">🛫 Solo grandi</div>`;
   }else{
     $("sb-title").textContent="Navi area locale";
-    fg.innerHTML=`<div class="fb on-sea" data-k="cargo" onclick="tsf(this)">📦 Cargo</div><div class="fb on-sea" data-k="tanker" onclick="tsf(this)">🛢 Tanker</div><div class="fb on-sea" data-k="passenger" onclick="tsf(this)">🚢 Passeggeri</div><div class="fb on-mil" data-k="military" onclick="tsf(this)">🪖 Militari</div><div class="fb on" data-k="other" onclick="tsf(this)">🔹 Altro</div>`;
+    fg.innerHTML=`
+      <div class="fb on-sea" data-k="cargo"     onclick="tsf(this)">📦 Cargo</div>
+      <div class="fb on-sea" data-k="tanker"    onclick="tsf(this)">🛢 Tanker</div>
+      <div class="fb on-sea" data-k="passenger" onclick="tsf(this)">🚢 Passeggeri</div>
+      <div class="fb on-mil" data-k="military"  onclick="tsf(this)">🪖 Militari</div>
+      <div class="fb on"     data-k="other"     onclick="tsf(this)">🔹 Altro</div>`;
   }
 }
 function taf(b){const k=b.dataset.k;airF[k]=!airF[k];b.className="fb"+(airF[k]?(k==="mil"?" on-mil":k==="gnd"?" on-gnd":" on"):"");renderAir()}
@@ -608,9 +685,18 @@ function setMode(m){
   mode=m;
   ["air","sea"].forEach(n=>{$("nav-"+n).className="nb"+(m===n?" "+n+"-on":"")});
   cluster.clearLayers();trailLayer.clearLayers();closeDetail();closeSheet();
-  clearInterval(tAir);clearInterval(tSea);buildFilters();
-  if(m==="air"){map.setView([45.07,7.68],7,{animate:true});fetchAir();tAir=setInterval(fetchAir,20000)}
-  else{map.setView([42,12],6,{animate:true});fetchSea();tSea=setInterval(fetchSea,30000)}
+  clearInterval(tAir);clearInterval(tSea);
+  buildFilters();
+  if(m==="air"){
+    map.setView([45.07,7.68],7,{animate:true});
+    fetchAir();
+    // ✅ 60s — evita 429 OpenSky
+    tAir=setInterval(fetchAir,60000);
+  }else{
+    map.setView([42,12],6,{animate:true});
+    fetchSea();
+    tSea=setInterval(fetchSea,30000);
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -622,7 +708,8 @@ setupNetwork();
 initMap();
 buildFilters();
 fetchAir();
-tAir=setInterval(fetchAir,20000);
+// ✅ 60s refresh — evita 429 OpenSky
+tAir=setInterval(fetchAir,60000);
 </script>
 </body>
 </html>
